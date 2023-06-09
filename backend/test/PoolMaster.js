@@ -47,16 +47,19 @@ describe("PoolMaster", () => {
     })
   })
 
-  describe("Pools", () => {
-    it('Returns pools attributes', async () => {
-      const POOL = await poolMaster.getPools(1)
-      expect(POOL.id).to.be.equal(1)
-      expect(POOL.name).to.be.equal(POOL_NAME)
-      expect(POOL.cost).to.be.equal(POOL_COST)
-      expect(POOL.spots).to.be.equal(POOL_MAX_SPOTS)
-      expect(POOL.date).to.be.equal(POOL_DATE)
-      expect(POOL.time).to.be.equal(POOL_TIME)
-    })
+describe("Pools", () => {
+  it('Returns pools attributes', async () => {
+    const POOL = await poolMaster.getPool(1)
+    console.log(POOL);  // logging the returned pool object
+
+    // your assertions...
+    expect(POOL.id).to.be.equal(1)
+    expect(POOL.name).to.be.equal(POOL_NAME)
+    expect(POOL.cost).to.be.equal(POOL_COST)
+    expect(POOL.spots).to.be.equal(POOL_MAX_SPOTS)
+    expect(POOL.date).to.be.equal(POOL_DATE)
+    expect(POOL.time).to.be.equal(POOL_TIME)
+  })
 
     it('Updates pools count', async () => {
       const totalPools = await poolMaster.totalPools()
@@ -75,7 +78,7 @@ describe("PoolMaster", () => {
     })
 
     it('Updates pool count', async () => {
-      const POOL = await poolMaster.getPools(1)
+      const POOL = await poolMaster.getPool(1)
       expect(POOL.spots).to.be.equal(POOL_MAX_SPOTS - 1)
     })
 
