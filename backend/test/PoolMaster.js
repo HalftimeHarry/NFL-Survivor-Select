@@ -11,18 +11,18 @@ const POOL_TIME = "5:00PM EST"
 
 describe("PoolMaster", () => {
   let poolMaster;
-  let deployer, buyer;
+  let owner, participants;
 
   beforeEach(async () => {
     // Setup accounts
-    [deployer, buyer] = await ethers.getSigners();
+    [owner, participants] = await ethers.getSigners();
 
     // Deploy contract
     const PoolMaster = await ethers.getContractFactory("PoolMaster");
     poolMaster = await PoolMaster.deploy(NAME, SYMBOL);
 
     // Use the poolMaster instance to call the list function
-    const transaction = await poolMaster.connect(deployer).list(
+    const transaction = await poolMaster.connect(owner).list(
       POOL_NAME,
       POOL_COST,
       POOL_MAX_SPOTS,
@@ -43,7 +43,7 @@ describe("PoolMaster", () => {
     })
 
     it("Sets the owner", async () => {
-      expect(await poolMaster.owner()).to.equal(deployer.address)
+      expect(await poolMaster.owner()).to.equal(owner.address)
     })
   })
 
@@ -73,7 +73,7 @@ describe("Pools", () => {
     const AMOUNT = ethers.utils.parseUnits('1', 'ether')
 
     beforeEach(async () => {
-      const transaction = await poolMaster.connect(buyer).mint(ID, SPOT, { value: AMOUNT })
+      const transaction = await poolMaster.connect(participants).mint(ID, SPOT, { value: AMOUNT })
       await transaction.wait()
     })
 
@@ -83,13 +83,13 @@ describe("Pools", () => {
     })
 
     it('Updates buying status', async () => {
-      const status = await poolMaster.hasBought(ID, buyer.address)
+      const status = await poolMaster.hasBought(ID, participants.address)
       expect(status).to.be.equal(true)
     })
 
     it('Updates SPOT status', async () => {
       const owner = await poolMaster.spotTaken(ID, SPOT)
-      expect(owner).to.equal(buyer.address)
+      expect(owner).to.equal(participants.address)
     })
 
     it('Updates overall spotting status', async () => {
@@ -111,17 +111,17 @@ describe("Pools", () => {
     let balanceBefore
 
     beforeEach(async () => {
-      balanceBefore = await ethers.provider.getBalance(deployer.address)
+      balanceBefore = await ethers.provider.getBalance(owner.address)
 
-      let transaction = await poolMaster.connect(buyer).mint(ID, SPOT, { value: AMOUNT })
+      let transaction = await poolMaster.connect(participants).mint(ID, SPOT, { value: AMOUNT })
       await transaction.wait()
 
-      transaction = await poolMaster.connect(deployer).withdraw()
+      transaction = await poolMaster.connect(owner).withdraw()
       await transaction.wait()
     })
 
     it('Updates the owner balance', async () => {
-      const balanceAfter = await ethers.provider.getBalance(deployer.address)
+      const balanceAfter = await ethers.provider.getBalance(owner.address)
       expect(balanceAfter).to.be.greaterThan(balanceBefore)
     })
 
