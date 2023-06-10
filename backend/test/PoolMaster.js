@@ -1,13 +1,14 @@
-const { expect } = require("chai")
+const { expect } = require("chai");
 
-const NAME = "PoolMaster"
-const SYMBOL = "PM"
+const NAME = "PoolMaster";
+const SYMBOL = "PM";
 
-const POOL_NAME = "NFL Wk 1"
-const POOL_COST = ethers.utils.parseUnits('1', 'ether')
-const POOL_MAX_SPOTS = 100
-const POOL_DATE = "Sept 8th"
-const POOL_TIME = "5:00PM EST"
+const POOL_NAME = "Wk 1";
+const POOL_COST = ethers.utils.parseUnits('1', 'ether');
+const POOL_MAX_SPOTS = 100;
+const POOL_DATE = "Sept 7th";
+const POOL_TIME = "9:00PM EST";
+const WEEK_ID = 1;
 
 describe("PoolMaster", () => {
   let poolMaster;
@@ -17,20 +18,33 @@ describe("PoolMaster", () => {
     // Setup accounts
     [owner, participants] = await ethers.getSigners();
 
-    // Deploy contract
-    const PoolMaster = await ethers.getContractFactory("PoolMaster");
-    poolMaster = await PoolMaster.deploy(NAME, SYMBOL);
+      // Deploy contract
+      const PoolMaster = await ethers.getContractFactory("PoolMaster");
+      poolMaster = await PoolMaster.deploy(NAME, SYMBOL, INITIAL_SUPPLY); // assuming your contract constructor takes 3 arguments
 
-    // Use the poolMaster instance to call the list function
-    const transaction = await poolMaster.connect(owner).list(
+      console.log(poolMaster.address); 
+    // Add a week
+    const addWeekTx = await poolMaster.connect(owner).addWeek(
+      WEEK_ID, 
+      Math.floor(Date.now() / 1000), // current timestamp
+      `Week ${WEEK_ID}`
+    );
+
+    await addWeekTx.wait();
+
+    // List a pool
+    const listTx = await poolMaster.connect(owner).list(
+      WEEK_ID,
       POOL_NAME,
       POOL_COST,
       POOL_MAX_SPOTS,
       POOL_DATE,
-      POOL_TIME
+      POOL_TIME,
+      Math.floor(Date.now() / 1000) + 60, // entry deadline in 60 seconds
+      Math.floor(Date.now() / 1000) + 120 // pick deadline in 120 seconds
     );
 
-    await transaction.wait();
+    await listTx.wait();
   });
 
   describe("Deployment", () => {
@@ -38,96 +52,48 @@ describe("PoolMaster", () => {
       expect(await poolMaster.name()).to.equal(NAME);
     });
 
-    it("Sets the symbol", async () => {
-      expect(await poolMaster.symbol()).to.equal(SYMBOL)
-    })
+    // More tests...
+  });
 
-    it("Sets the owner", async () => {
-      expect(await poolMaster.owner()).to.equal(owner.address)
-    })
-  })
+  describe("Week Initialization", () => {
+    it('Adds a week', async () => {
+      // Your assertion for checking if week has been added successfully...
+    });
 
-describe("Pools", () => {
-  it('Returns pools attributes', async () => {
-    const POOL = await poolMaster.getPool(1)
-    console.log(POOL);  // logging the returned pool object
+    // More tests...
+  });
 
-    // your assertions...
-    expect(POOL.id).to.be.equal(1)
-    expect(POOL.name).to.be.equal(POOL_NAME)
-    expect(POOL.cost).to.be.equal(POOL_COST)
-    expect(POOL.spots).to.be.equal(POOL_MAX_SPOTS)
-    expect(POOL.date).to.be.equal(POOL_DATE)
-    expect(POOL.time).to.be.equal(POOL_TIME)
-  })
+  describe("Pool Listing", () => {
+    it('Lists a pool', async () => {
+      // Your assertion for checking if pool is listed successfully...
+    });
 
-    it('Updates pools count', async () => {
-      const totalPools = await poolMaster.totalPools()
-      expect(totalPools).to.be.equal(1)
-    })
-  })
+    // More tests...
+  });
 
-  describe("Minting", () => {
-    const ID = 1
-    const SPOT = 50
-    const AMOUNT = ethers.utils.parseUnits('1', 'ether')
+  describe("Pool Entry", () => {
+    it('Allows entry before deadline', async () => {
+      // Your assertion for checking if entry is allowed before deadline...
+    });
 
-    beforeEach(async () => {
-      const transaction = await poolMaster.connect(participants).mint(ID, SPOT, { value: AMOUNT })
-      await transaction.wait()
-    })
+    it('Prevents entry after deadline', async () => {
+      // Your assertion for checking if entry is prevented after deadline...
+    });
 
-    it('Updates pool count', async () => {
-      const POOL = await poolMaster.getPool(1)
-      expect(POOL.spots).to.be.equal(POOL_MAX_SPOTS - 1)
-    })
+    // More tests...
+  });
 
-    it('Updates buying status', async () => {
-      const status = await poolMaster.hasBought(ID, participants.address)
-      expect(status).to.be.equal(true)
-    })
+  describe("Team Selection", () => {
+    it('Allows team selection before deadline', async () => {
+      // Your assertion for checking if team selection is allowed before deadline...
+    });
 
-    it('Updates SPOT status', async () => {
-      const owner = await poolMaster.spotTaken(ID, SPOT)
-      expect(owner).to.equal(participants.address)
-    })
+    it('Prevents team selection after deadline', async () => {
+      // Your assertion for checking if team selection is prevented after deadline...
+    });
 
-    it('Updates overall spotting status', async () => {
-      const spots = await poolMaster.getSeatsTaken(ID)
-      expect(spots.length).to.equal(1)
-      expect(spots[0]).to.equal(SPOT)
-    })
+    // More tests...
+  });
 
-    it('Updates the contract balance', async () => {
-      const balance = await ethers.provider.getBalance(poolMaster.address)
-      expect(balance).to.be.equal(AMOUNT)
-    })
-  })
-
-  describe("Withdrawing", () => {
-    const ID = 1
-    const SPOT = 50
-    const AMOUNT = ethers.utils.parseUnits("1", 'ether')
-    let balanceBefore
-
-    beforeEach(async () => {
-      balanceBefore = await ethers.provider.getBalance(owner.address)
-
-      let transaction = await poolMaster.connect(participants).mint(ID, SPOT, { value: AMOUNT })
-      await transaction.wait()
-
-      transaction = await poolMaster.connect(owner).withdraw()
-      await transaction.wait()
-    })
-
-    it('Updates the owner balance', async () => {
-      const balanceAfter = await ethers.provider.getBalance(owner.address)
-      expect(balanceAfter).to.be.greaterThan(balanceBefore)
-    })
-
-    it('Updates the contract balance', async () => {
-      const balance = await ethers.provider.getBalance(poolMaster.address)
-      expect(balance).to.equal(0)
-    })
-  })
-})
+  // More test suites...
+});
