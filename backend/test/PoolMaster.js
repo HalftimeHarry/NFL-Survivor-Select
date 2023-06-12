@@ -59,26 +59,36 @@ describe("PoolMaster", () => {
 
   describe("Pool Listing", () => {
     it('Lists a pool', async () => {
-      // Add your assertion to verify if pool is listed successfully.
-      // This will depend on how you are tracking pools in your smart contract
+      const poolId = 1; // Assuming you are listing the first pool
+
+      // Join the pool before listing it
+      const listPoolTx = await poolMaster.connect(participants[0]).enter(poolId, { value: POOL_COST });
+      await listPoolTx.wait();
+
+      // Retrieve the pool details
+      const listedPool = await poolMaster.getPool(poolId);
+
+      // Assert that the listed pool details match the expected values
+      expect(listedPool.name).to.equal(POOL_NAME);
+      expect(listedPool.cost).to.equal(POOL_COST);
+      expect(listedPool.maxSpots).to.equal(POOL_MAX_SPOTS);
+      expect(listedPool.date).to.equal(POOL_DATE);
+      expect(listedPool.time).to.equal(POOL_TIME);
+      // Add more assertions for other properties if needed
     });
+  });
 
     describe("Pool Entry", () => {
-      before(async () => {
-        // Call the correct method on the contract
-        const joinPoolTx = await poolMaster.connect(participants[0]).enter(1, { value: POOL_COST });
-
-        // Wait for the transaction to be mined
-        await joinPoolTx.wait();
-      });
-
     it('Allows entry before deadline', async () => {
-      // Verify that the participant has been entered into the pool
-      const poolId = 1; // Assuming you are entering the first pool
-      const participant = participants[0].address;
+      const allowEntryTx = await poolMaster.connect(participants[0]).enter(1, { value: POOL_COST });
+      await allowEntryTx.wait();
 
-      // Verify that the participant has been entered
+      const participant = participants[0].address;
+      const poolId = 1; // Assuming you are entering the first pool
+      
       const hasEntered = await poolMaster.hasEntered(poolId, participant);
+      console.log('Has Entered:', hasEntered);
+
       expect(hasEntered).to.equal(true);
 
       // Verify the updated state variable for number of entries
@@ -88,4 +98,54 @@ describe("PoolMaster", () => {
     });
     });
   });
-});
+    describe("Team Selection", () => {
+      beforeEach(async () => {
+        // ...existing code...
+      });
+
+      it('Allows team selection before deadline', async () => {
+        const participant = participants[0].address;
+        const poolId = 1; // Assuming you are selecting the first pool
+
+        // Join the pool before selecting the team
+        const joinPoolTx = await poolMaster.connect(participant).enter(poolId, { value: POOL_COST });
+        await joinPoolTx.wait();
+
+        const canSelectTeam = await poolMaster.canSelectTeam(poolId, participant);
+        console.log('Can Select Team:', canSelectTeam);
+
+        expect(canSelectTeam).to.equal(true);
+
+        const selectedTeam = 1; // Assuming you are selecting the first team
+        const selectTeamTx = await poolMaster.connect(participant).selectTeam(poolId, selectedTeam);
+        await selectTeamTx.wait();
+
+        // Verify the updated state
+        const selectedTeamId = await poolMaster.getSelectedTeam(poolId, participant);
+        console.log('Selected Team ID:', selectedTeamId);
+        expect(selectedTeamId).to.equal(selectedTeam);
+      });
+
+      it('Prevents team selection after deadline', async () => {
+        const participant = participants[0].address;
+        const poolId = 1;
+
+        // Set the current time to be after the deadline
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        const deadline = await poolMaster.getPickDeadline(poolId);
+        const isAfterDeadline = currentTimestamp > deadline;
+        expect(isAfterDeadline).to.equal(true);
+
+        let error;
+        try {
+          const selectedTeam = 1; // Assuming you are attempting to select the first team
+          const selectTeamTx = await poolMaster.connect(participant).selectTeam(poolId, selectedTeam);
+          await selectTeamTx.wait();
+        } catch (err) {
+          error = err;
+        }
+
+        expect(error).to.be.an.instanceOf(Error);
+        expect(error.message).to.equal('Team selection is not allowed after the deadline');
+      });
+    });

@@ -164,6 +164,21 @@ contract PoolMaster is ERC721 {
         return entriesCount[_id];
     }
 
+    function canSelectTeam(uint256 _poolId) external view returns (bool) {
+        require(_poolId != 0, "Invalid pool ID");
+        require(_poolId <= totalPools, "Invalid pool ID");
+
+        Pool storage pool = pools[_poolId];
+        uint256 currentTime = block.timestamp;
+
+        // Check if the current time is before the team selection deadline
+        if (currentTime < pool.pickDeadline) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     function withdraw() public onlyOwner {
         (bool success, ) = owner.call{value: address(this).balance}("");
         require(success);
