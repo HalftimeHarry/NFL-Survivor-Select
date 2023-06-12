@@ -99,17 +99,12 @@ describe("PoolMaster", () => {
     });
   });
     describe("Team Selection", () => {
-      beforeEach(async () => {
-        // ...existing code...
-      });
-
       it('Allows team selection before deadline', async () => {
-        const participant = participants[0].address;
         const poolId = 1; // Assuming you are selecting the first pool
 
         // Join the pool before selecting the team
-        const joinPoolTx = await poolMaster.connect(participant).enter(poolId, { value: POOL_COST });
-        await joinPoolTx.wait();
+        const selTmTx = await poolMaster.connect(participant).enter(poolId, { value: POOL_COST });
+        await selTmTx.wait();
 
         const canSelectTeam = await poolMaster.canSelectTeam(poolId, participant);
         console.log('Can Select Team:', canSelectTeam);

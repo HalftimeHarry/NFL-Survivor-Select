@@ -47,6 +47,7 @@ contract PoolMaster is ERC721 {
     mapping(uint256 => Pool) public pools;
     mapping(uint256 => mapping(address => bool)) public hasEntered;
     mapping(uint256 => uint256) public entriesCount;
+    mapping(uint256 => mapping(address => uint256)) selectedTeams;
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -162,6 +163,23 @@ contract PoolMaster is ERC721 {
 
     function getEntriesCount(uint256 _id) public view returns (uint256) {
         return entriesCount[_id];
+    }
+
+    function getSelectedTeam(uint256 entryId) public view returns (uint256) {
+        return selectedTeams[entryId][msg.sender];
+    }
+
+    function pickTeam(uint256 entryId, uint256 teamId) public {
+        // Check if the sender is the owner of the entry
+        require(
+            msg.sender == entryContract.ownerOf(entryId),
+            "Only the entry owner can pick a team"
+        );
+
+        // Store the selected team in the PoolMaster contract
+        selectedTeams[entryId][msg.sender] = teamId;
+
+        // ... rest of the function ...
     }
 
     function canSelectTeam(uint256 _poolId) external view returns (bool) {
