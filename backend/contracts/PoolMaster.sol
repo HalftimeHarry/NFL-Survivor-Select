@@ -146,7 +146,8 @@ contract PoolMaster is ERC721 {
 
         pools[_id].players -= 1;
         hasEntered[_id][msg.sender] = true;
-        entriesCount[_id] += 1;
+        entriesCount[_id] += 1; // Increment the entry count
+
         totalSupply++;
 
         _safeMint(msg.sender, totalSupply);
