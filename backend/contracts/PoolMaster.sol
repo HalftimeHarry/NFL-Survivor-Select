@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./Entry.sol"; // The Entry contract
 
@@ -10,6 +11,16 @@ contract PoolMaster is ERC721 {
     uint256 public totalSupply;
 
     Entry public entryContract; // instance of the Entry contract
+
+    // Add these debugging events
+    event EnteredPool(uint256 poolId, address entrant, uint256 remainingSpots);
+    event ListedPool(
+        uint256 poolId,
+        uint256 weekId,
+        string name,
+        uint256 cost,
+        uint256 maxSpots
+    );
 
     struct Pool {
         uint256 id;
@@ -54,20 +65,18 @@ contract PoolMaster is ERC721 {
         initializeWeeks();
     }
 
-    function uint2str(
-        uint _i
-    ) internal pure returns (string memory _uintAsString) {
+    function uint2str(uint256 _i) internal pure returns (string memory) {
         if (_i == 0) {
             return "0";
         }
-        uint j = _i;
-        uint len;
+        uint256 j = _i;
+        uint256 length;
         while (j != 0) {
-            len++;
+            length++;
             j /= 10;
         }
-        bytes memory bstr = new bytes(len);
-        uint k = len - 1;
+        bytes memory bstr = new bytes(length);
+        uint256 k = length - 1;
         while (_i != 0) {
             bstr[k--] = bytes1(uint8(48 + (_i % 10)));
             _i /= 10;
@@ -78,15 +87,17 @@ contract PoolMaster is ERC721 {
     function initializeWeeks() private {
         uint256 seasonStartTime = 1670064000; // Timestamp for 9/7/2023 00:00:00 UTC
         uint256 weekDuration = 7 days;
+        uint256 entryOffset = 20 hours;
+        uint256 pickOffset = 10 minutes;
 
         for (uint i = 1; i <= 18; i++) {
-            uint256 weekStartTime = seasonStartTime + (weekDuration * (i - 1));
-            uint256 entryDeadline = weekStartTime + (20 hours * i); // 9 PM EST on the start day of the week
-            uint256 pickDeadline = entryDeadline + 10 minutes;
+            uint256 weekStartTime = seasonStartTime + ((i - 1) * weekDuration);
+            uint256 entryDeadline = weekStartTime + entryOffset; // 9 PM EST on the start day of the week
+            uint256 pickDeadline = entryDeadline + pickOffset;
 
             poolWeeks[i] = Week(
                 i,
-                string(abi.encodePacked("Week ", uint2str(i))),
+                string(abi.encodePacked("Week ", Strings.toString(i))),
                 entryDeadline,
                 pickDeadline,
                 i
@@ -119,6 +130,9 @@ contract PoolMaster is ERC721 {
             _entryDeadline,
             _pickDeadline
         );
+
+        // Emit ListedPool event when a new pool is listed
+        emit ListedPool(totalPools, _weekId, _name, _cost, _maxSpots);
     }
 
     function enter(uint256 _id) public payable {
@@ -126,6 +140,7 @@ contract PoolMaster is ERC721 {
         require(_id <= totalPools);
         require(msg.value >= pools[_id].cost);
         require(!hasEntered[_id][msg.sender]);
+        require(pools[_id].players > 0, "Pool is already full");
 
         entryContract.mint("tokenURI"); // replace "tokenURI" with the actual token URI
 
@@ -135,6 +150,9 @@ contract PoolMaster is ERC721 {
         totalSupply++;
 
         _safeMint(msg.sender, totalSupply);
+
+        // Emit EnteredPool event when a player enters a pool
+        emit EnteredPool(_id, msg.sender, pools[_id].players);
     }
 
     function getPool(uint256 _id) public view returns (Pool memory) {
