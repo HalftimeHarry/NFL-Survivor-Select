@@ -71,7 +71,7 @@ describe("PoolMaster", () => {
       // Assert that the listed pool details match the expected values
       expect(listedPool.name).to.equal(POOL_NAME);
       expect(listedPool.cost).to.equal(POOL_COST);
-      expect(listedPool.maxSpots).to.equal(POOL_MAX_SPOTS);
+      expect(listedPool.spots).to.equal(POOL_MAX_SPOTS);
       expect(listedPool.date).to.equal(POOL_DATE);
       expect(listedPool.time).to.equal(POOL_TIME);
       // Add more assertions for other properties if needed
@@ -136,23 +136,22 @@ describe("PoolMaster", () => {
     }
   });
 
-  // ...
-  describe("Team Selection", () => {
-    it('Allows team selection before deadline', async () => {
-      const entryId = 1; // Assuming the participant owns an NFT with token ID 1
-      const selectedTeam = 1; // Assuming you are selecting the first team
+    describe("Team Selection", () => {
+      it('Allows team selection before deadline', async () => {
+        const entryId = 1; // Assuming the participant owns an NFT with token ID 1
+        const selectedTeam = 1; // Assuming you are selecting the first team
 
-      try {
-        const pickTeamTx = await poolMaster.connect(participants[0]).pickTeam(entryId, selectedTeam);
-        await pickTeamTx.wait();
-        console.log(123);
+        try {
+          const pickTeamTx = await poolMaster.connect(participants[0]).pickTeam(entryId, selectedTeam);
+          await pickTeamTx.wait();
+          console.log(123);
 
-        // ...existing code...
-      } catch (error) {
-        console.error('Error in pickTeamTx:', error);
-      }
+          // ...existing code...
+        } catch (error) {
+          console.error('Error in pickTeamTx:', error);
+        }
+      });
     });
-  });
 
     it('Prevents team selection after deadline', async () => {
       // Set the current time to be after the deadline

@@ -19,7 +19,7 @@ contract PoolMaster is ERC721 {
         uint256 weekId,
         string name,
         uint256 cost,
-        uint256 maxSpots
+        uint256 spots
     );
 
     struct Pool {
@@ -28,7 +28,7 @@ contract PoolMaster is ERC721 {
         string name;
         uint256 cost;
         uint256 players;
-        uint256 maxSpots;
+        uint256 spots;
         string date;
         string time;
         uint256 entryDeadline;
@@ -88,12 +88,11 @@ contract PoolMaster is ERC721 {
     function initializeWeeks() private {
         uint256 seasonStartTime = 1670064000; // Timestamp for 9/7/2023 00:00:00 UTC
         uint256 weekDuration = 7 days;
-        uint256 entryOffset = 20 hours;
         uint256 pickOffset = 10 minutes;
 
         for (uint i = 1; i <= 18; i++) {
             uint256 weekStartTime = seasonStartTime + ((i - 1) * weekDuration);
-            uint256 entryDeadline = weekStartTime + entryOffset; // 9 PM EST on the start day of the week
+            uint256 entryDeadline = weekStartTime; // No entry offset
             uint256 pickDeadline = entryDeadline + pickOffset;
 
             poolWeeks[i] = Week(
