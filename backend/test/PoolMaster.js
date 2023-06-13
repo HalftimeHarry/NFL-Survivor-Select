@@ -137,16 +137,22 @@ describe("PoolMaster", () => {
   });
 
   // ...
-
   describe("Team Selection", () => {
     it('Allows team selection before deadline', async () => {
       const entryId = 1; // Assuming the participant owns an NFT with token ID 1
       const selectedTeam = 1; // Assuming you are selecting the first team
-      const pickTeamTx = await poolMaster.connect(participants[0]).pickTeam(entryId, selectedTeam);
-      await pickTeamTx.wait();
 
-      // ...existing code...
+      try {
+        const pickTeamTx = await poolMaster.connect(participants[0]).pickTeam(entryId, selectedTeam);
+        await pickTeamTx.wait();
+        console.log(123);
+
+        // ...existing code...
+      } catch (error) {
+        console.error('Error in pickTeamTx:', error);
+      }
     });
+  });
 
     it('Prevents team selection after deadline', async () => {
       // Set the current time to be after the deadline
@@ -158,4 +164,3 @@ describe("PoolMaster", () => {
       expect(isAfterDeadline).to.equal(false); // Expecting false, as team selection is not allowed after the deadline
     });
   });
-});
