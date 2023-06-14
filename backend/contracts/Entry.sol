@@ -14,11 +14,14 @@ contract Entry is ERC721URIStorage {
 
     constructor() ERC721("Entry", "ENT") {}
 
-    function mint(string memory tokenURI) public returns (uint256) {
+    function mint(
+        address recipient,
+        string memory tokenURI
+    ) public returns (uint256) {
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();
-        _mint(msg.sender, newItemId);
+        _mint(recipient, newItemId); // mint token to recipient instead of msg.sender
         _setTokenURI(newItemId, tokenURI);
 
         return newItemId;
