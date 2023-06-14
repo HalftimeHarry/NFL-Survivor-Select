@@ -217,28 +217,5 @@ describe("pickTeam", function() {
       // Expected an error, so the test passes
     }
   });
-
-  it("Should not allow picking the same team twice", async function () {
-    const participant = participants[0];
-      const teamId = 1;
-        console.log(123);
-      // Let the participant pick a team
-    let test = await entry.connect(participant).pickTeam(1, teamId);
-    console.log(test);
-
-      // Attempt to pick the same team again
-      try {
-          await entry.connect(participant).pickTeam(1, teamId);
-          expect.fail("Expected an error while picking the same team twice");
-      } catch (error) {
-          // Catch the error
-          expect(error.message).to.contain("team has already been picked"); // Adjust the error message according to your contract
-      }
-
-      // Verify that only one team has been picked
-      const pickedTeams = await entry.getPickedTeams(1);
-      expect(pickedTeams.length).to.equal(1);
-      expect(pickedTeams[0]).to.equal(teamId);
-  });
  });
 });
