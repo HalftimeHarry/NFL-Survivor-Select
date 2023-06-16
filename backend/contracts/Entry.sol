@@ -46,6 +46,34 @@ contract Entry is ERC721URIStorage {
         _pickedTeams[entryId].push(teamId);
     }
 
+    function changeTeam(
+        uint256 entryId,
+        uint oldTeamId,
+        uint newTeamId
+    ) public {
+        // Check if the sender is the owner of the entry
+        require(
+            msg.sender == ownerOf(entryId),
+            "Only the entry owner can change a team"
+        );
+
+        // Check if the new team has already been picked
+        for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
+            require(
+                _pickedTeams[entryId][i] != newTeamId,
+                "This team has already been picked"
+            );
+        }
+
+        // Replace the old team with the new one
+        for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
+            if (_pickedTeams[entryId][i] == oldTeamId) {
+                _pickedTeams[entryId][i] = newTeamId;
+                break;
+            }
+        }
+    }
+
     function getPickedTeams(
         uint256 entryId
     ) public view returns (uint[] memory) {
