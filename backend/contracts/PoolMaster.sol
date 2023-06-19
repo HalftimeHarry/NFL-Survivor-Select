@@ -159,6 +159,12 @@ contract PoolMaster is ERC721 {
         return pools[_id];
     }
 
+    function getWeek(uint weekId) public view returns (uint256, string memory, uint256, uint256, uint256) {
+        Week memory week = poolWeeks[weekId];
+        return (week.id, week.name, week.entryDeadline, week.pickDeadline, week.selectionDeadline);
+    }
+
+
     function getEntriesCount(uint256 _id) public view returns (uint256) {
         return entriesCount[_id];
     }

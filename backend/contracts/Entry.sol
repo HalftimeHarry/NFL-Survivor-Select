@@ -4,15 +4,25 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "./PoolMaster.sol"; // Import the PoolMaster contract
 
 contract Entry is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    // Mapping from Entry ID to an array of team IDs
-    mapping(uint256 => uint[]) private _pickedTeams;
+    PoolMaster public poolMaster; // Declare the PoolMaster contract instance
 
-    constructor() ERC721("Entry", "ENT") {}
+    struct PickedTeam {
+        uint256 weekId;
+        uint256 teamId;
+    }
+
+    // Mapping from Entry ID to an array of PickedTeams
+    mapping(uint256 => PickedTeam[]) private _pickedTeams;
+
+    constructor(address _poolMaster) ERC721("Entry", "ENT") {
+        poolMaster = PoolMaster(_poolMaster); // Assign the PoolMaster contract instance
+    }
 
     function mint(
         address recipient,
@@ -27,27 +37,33 @@ contract Entry is ERC721URIStorage {
         return newItemId;
     }
 
-    function pickTeam(uint256 entryId, uint teamId) public {
-        // Check if the sender is the owner of the entry
+    function pickTeam(uint256 entryId, uint256 weekId, uint256 teamId) public {
         require(
             msg.sender == ownerOf(entryId),
             "Only the entry owner can pick a team"
         );
 
-        // Iterate over the already picked teams to ensure the team hasn't been picked before
+        (, , , uint256 pickDeadline, ) = poolMaster.getWeek(weekId);
+        require(
+            block.timestamp < pickDeadline,
+            "Pick deadline for this week has passed"
+        );
+
+        // Ensure the participant hasn't already picked this team for any week
         for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
             require(
-                _pickedTeams[entryId][i] != teamId,
+                _pickedTeams[entryId][i].teamId != teamId,
                 "This team has already been picked"
             );
         }
 
-        // Add the team to the picked teams
-        _pickedTeams[entryId].push(teamId);
+        // Continue with the logic for picking a team
+        _pickedTeams[entryId].push(PickedTeam(weekId, teamId));
     }
 
     function changeTeam(
         uint256 entryId,
+        uint256 weekId, // we need the weekId to find the right team
         uint oldTeamId,
         uint newTeamId
     ) public {
@@ -59,25 +75,46 @@ contract Entry is ERC721URIStorage {
 
         // Check if the new team has already been picked
         for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
-            require(
-                _pickedTeams[entryId][i] != newTeamId,
-                "This team has already been picked"
-            );
+            // check if the weekId matches and the teamId matches the newTeamId
+            if (
+                _pickedTeams[entryId][i].weekId == weekId &&
+                _pickedTeams[entryId][i].teamId == newTeamId
+            ) {
+                revert("This team has already been picked");
+            }
         }
 
         // Replace the old team with the new one
+        bool teamFound = false;
         for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
-            if (_pickedTeams[entryId][i] == oldTeamId) {
-                _pickedTeams[entryId][i] = newTeamId;
+            // check if the weekId matches and the teamId matches the oldTeamId
+            if (
+                _pickedTeams[entryId][i].weekId == weekId &&
+                _pickedTeams[entryId][i].teamId == oldTeamId
+            ) {
+                _pickedTeams[entryId][i].teamId = newTeamId;
+                teamFound = true;
                 break;
             }
         }
+
+        // If we didn't find the team, revert the transaction
+        require(teamFound, "No team found to replace for this week");
     }
 
     function getPickedTeams(
         uint256 entryId
-    ) public view returns (uint[] memory) {
-        return _pickedTeams[entryId];
+    ) public view returns (uint256[] memory, uint256[] memory) {
+        PickedTeam[] memory pickedTeams = _pickedTeams[entryId];
+        uint256[] memory weekIds = new uint256[](pickedTeams.length);
+        uint256[] memory teamIds = new uint256[](pickedTeams.length);
+
+        for (uint i = 0; i < pickedTeams.length; i++) {
+            weekIds[i] = pickedTeams[i].weekId;
+            teamIds[i] = pickedTeams[i].teamId;
+        }
+
+        return (weekIds, teamIds);
     }
 
     function totalSupply() public view returns (uint256) {
