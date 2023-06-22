@@ -24,6 +24,15 @@ contract Entry is ERC721URIStorage {
         poolMaster = PoolMaster(_poolMaster); // Assign the PoolMaster contract instance
     }
 
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://mytokenlocation.com";
+    }
+
+    function initialize(PoolMaster _poolMaster) public {
+        require(address(poolMaster) == address(0), "Already initialized");
+        poolMaster = _poolMaster;
+    }
+
     function mint(
         address recipient,
         string memory tokenURI
