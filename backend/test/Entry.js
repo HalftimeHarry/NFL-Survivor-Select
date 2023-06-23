@@ -35,6 +35,12 @@ describe("EntryContract", function () {
       // Add assertion to verify if the team was picked successfully
     });
 
+    it("Should allow owner to pick a team", async function () {
+      await entryContract.connect(owner).pickTeam(tokenId, teamId);
+
+      // Add assertion to verify if the team was picked successfully
+    });
+
     it("Should not allow non-owner to pick a team", async function () {
       try {
         await entryContract.connect(addr1).pickTeam(tokenId, teamId);

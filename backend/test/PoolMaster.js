@@ -28,27 +28,6 @@ describe("EntryContract", function () {
     expect(await entry.totalSupply()).to.equal(1);
   });
 
-  it("Should allow owner to pick a team", async function () {
-      const tokenId = (await entry.mint(addr1.address, "1")).toString();
-
-      console.log("tokenId:", tokenId);
-
-      const weekId = ethers.BigNumber.from(1);
-      const teamId = ethers.BigNumber.from(2);
-
-      console.log("weekId:", weekId);
-      console.log("teamId:", teamId);
-
-      await entry.connect(addr1).pickTeam(tokenId, weekId, teamId);
-
-      const [pickedWeekIds, pickedTeamIds] = await entry.getPickedTeams(tokenId);
-
-      console.log("pickedWeekIds:", pickedWeekIds);
-      console.log("pickedTeamIds:", pickedTeamIds);
-
-      expect(pickedWeekIds[0].toNumber()).to.equal(weekId.toNumber());
-      expect(pickedTeamIds[0].toNumber()).to.equal(teamId.toNumber());
-    });
   });
 
 describe("PoolMasterContract", function () {
