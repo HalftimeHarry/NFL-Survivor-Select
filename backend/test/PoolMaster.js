@@ -100,67 +100,82 @@ describe("PoolMasterContract", function () {
         expect(await entry.totalSupply()).to.equal(2);
         expect(ownerAfterMint).to.equal(addr1.address);
     });
+  
+    it('Should return the correct pickDeadline', async () => {
+    // setup and calling getWeek omitted...
+    const [, , , pickDeadline] = await poolMaster.getWeek(2);
+    console.log('pickDeadline:', pickDeadline.toString());
+    // ... check that pickDeadline is the expected value
+  });
 
-    it("Should allow participant to pick a team", async function () {
-      // List a new pool week
-      await poolMaster.list(
-        WEEK_ID,
-        POOL_NAME,
-        POOL_COST,
-        POOL_MAX_SPOTS,
-        POOL_DATE,
-        POOL_TIME,
-        POOL_DL,
-        POOL_PK_DL
-      );
+  it("Should allow participant to pick a team", async function () {
+        // List a new pool week
+        await poolMaster.list(
+          WEEK_ID,
+          POOL_NAME,
+          POOL_COST,
+          POOL_MAX_SPOTS,
+          POOL_DATE,
+          POOL_TIME,
+          POOL_DL,
+          POOL_PK_DL
+        );
 
-      // Enter the pool with addr1
-      await poolMaster.connect(addr1).enter(WEEK_ID, { value: ethers.utils.parseEther("1") });
+        // Enter the pool with addr1
+        await poolMaster.connect(addr1).enter(WEEK_ID, { value: ethers.utils.parseEther("1") });
 
-      // Mint a token to participant
-      const mintResult = await entry.connect(addr1).mint(addr1.address, "tokenURI1");
-      const receipt = await mintResult.wait(); // wait for transaction receipt
+        // Mint a token to participant
+        const mintResult = await entry.connect(addr1).mint(addr1.address, "tokenURI1");
+        const receipt = await mintResult.wait(); // wait for transaction receipt
 
-      // Extract tokenId from the Minted event in the receipt
-      const event = receipt.events.find(e => e.event === 'Minted');
-      const tokenId = event.args[1];
+        // Extract tokenId from the Minted event in the receipt
+        const event = receipt.events.find(e => e.event === 'Minted');
+        const tokenId = event.args[1];
 
-      console.log("Minted token ID:", tokenId.toString()); // Print the minted token ID
+        console.log("Minted token ID:", tokenId.toString()); // Print the minted token ID
 
-      console.log(await entry.ownerOf(1));
+        console.log("Owner of tokenId:", await entry.ownerOf(tokenId));
 
-      console.log("Minting transaction receipt:", addr1.address);
+        console.log("Minting transaction receipt:", addr1.address);
 
-      const ownerAddress = await entry.ownerOf(tokenId);
+        const ownerAddress = await entry.ownerOf(tokenId);
 
-      console.log("Owner address:", ownerAddress); // Print the owner address
+        console.log("Owner address:", ownerAddress); // Print the owner address
 
-      expect(ownerAddress).to.equal(addr1.address);
+        expect(ownerAddress).to.equal(addr1.address);
 
-      // Retrieve the entry ID
-      const entryId = tokenId;
+        // Retrieve the entry ID
+        const entryId = tokenId;
 
-      // Participant picks a team
-      const teamId = TEAM_ID;
+        // Check the state of the contract
+        // For example, if your contract has a state variable named "state", you can do:
+        // console.log("Contract state:", await entry.state());
 
-      try {
         // Participant picks a team
-        await entry.connect(addr1).pickTeam(entryId, WEEK_ID, teamId);
+        const teamId = TEAM_ID;
 
-        // Get the picked teams for the week
-        const [pickedWeekIds, pickedTeamIds] = await entry.getPickedTeams(entryId);
+        try {
+          // Participant picks a team
+          console.log("entryId:", entryId);
+          console.log("WEEK_ID:", WEEK_ID);
+          console.log("teamId:", teamId);
+          await entry.connect(addr1).pickTeam(entryId, WEEK_ID, teamId);
 
-        // Convert BigNumber values to regular numbers
-        const pickedWeeks = pickedWeekIds.map(id => id.toNumber());
-        const pickedTeams = pickedTeamIds.map(id => id.toNumber());
+          // Get the picked teams for the week
+          const [pickedWeekIds, pickedTeamIds] = await entry.getPickedTeams(entryId);
 
-        // Verify that the team has been picked
-        expect(pickedTeams).to.include(teamId);
-      } catch (error) {
-        console.error('Error message:', error.message);
-        console.error('Error in pickTeamTx:', error);
-        // If there's an error, fail the test
-        expect.fail("Unexpected error during pickTeam execution");
-      }
+          // Convert BigNumber values to regular numbers
+          const pickedWeeks = pickedWeekIds.map(id => id.toNumber());
+          const pickedTeams = pickedTeamIds.map(id => id.toNumber());
+
+          // Verify that the team has been picked
+          expect(pickedTeams).to.include(teamId);
+        } catch (error) {
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
+          console.error('Error in pickTeamTx:', error);
+          // If there's an error, fail the test
+          expect.fail("Unexpected error during pickTeam execution");
+        }
     });
 });
