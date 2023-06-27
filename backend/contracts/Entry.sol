@@ -19,10 +19,13 @@ contract Entry is ERC721URIStorage {
 
     // Mapping from Entry ID to an array of PickedTeams
     mapping(uint256 => PickedTeam[]) private _pickedTeams;
+    mapping(uint256 => address) private entryOwners;
 
     constructor(address _poolMaster) ERC721("Entry", "ENT") {
         poolMaster = PoolMaster(_poolMaster); // Assign the PoolMaster contract instance
     }
+
+    event Minted(address indexed to, uint256 indexed tokenId);
 
     function _baseURI() internal pure override returns (string memory) {
         return "https://mytokenlocation.com";
@@ -33,17 +36,22 @@ contract Entry is ERC721URIStorage {
         poolMaster = _poolMaster;
     }
 
-    function mint(
-        address recipient,
-        string memory tokenURI
-    ) public returns (uint256) {
+    function mint(address to, string memory tokenURI) public {
         _tokenIds.increment();
-
         uint256 newItemId = _tokenIds.current();
-        _mint(recipient, newItemId); // mint token to recipient instead of msg.sender
+        _mint(to, newItemId);
         _setTokenURI(newItemId, tokenURI);
 
-        return newItemId;
+        entryOwners[newItemId] = to; // add this line
+
+        emit Minted(to, newItemId); // Emit the event after minting a token
+    }
+
+    function ownerOf(
+        uint256 entryId
+    ) public view override(ERC721, IERC721) returns (address) {
+        require(entryId > 0, "Invalid entry ID");
+        return entryOwners[entryId];
     }
 
     function pickTeam(uint256 entryId, uint256 weekId, uint256 teamId) public {
@@ -118,7 +126,7 @@ contract Entry is ERC721URIStorage {
         uint256[] memory weekIds = new uint256[](pickedTeams.length);
         uint256[] memory teamIds = new uint256[](pickedTeams.length);
 
-        for (uint i = 0; i < pickedTeams.length; i++) {
+        for (uint256 i = 0; i < pickedTeams.length; i++) {
             weekIds[i] = pickedTeams[i].weekId;
             teamIds[i] = pickedTeams[i].teamId;
         }
