@@ -61,7 +61,7 @@ contract Entry is ERC721URIStorage {
             "Only the entry owner can pick a team"
         );
 
-        (, , , uint256 pickDeadline, ) = poolMaster.getWeek(weekId);
+        (, , , , uint256 pickDeadline, ) = poolMaster.getWeek(weekId);
         emit PickDeadlineEvent(pickDeadline);
         require(
             block.timestamp < pickDeadline,
@@ -82,7 +82,7 @@ contract Entry is ERC721URIStorage {
 
     function changeTeam(
         uint256 entryId,
-        uint256 weekId, // we need the weekId to find the right team
+        uint256 weekId,
         uint oldTeamId,
         uint newTeamId
     ) public {
@@ -91,6 +91,10 @@ contract Entry is ERC721URIStorage {
             msg.sender == ownerOf(entryId),
             "Only the entry owner can change a team"
         );
+
+        // Check if the week has passed
+        (, , , , , bool weekHasPassed) = poolMaster.getWeek(weekId);
+        require(!weekHasPassed, "Cannot change team after the week has passed");
 
         // Check if the new team has already been picked
         for (uint i = 0; i < _pickedTeams[entryId].length; i++) {

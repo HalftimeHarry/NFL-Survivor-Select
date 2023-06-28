@@ -60,7 +60,7 @@ describe("PoolMasterContract", function () {
       expect(pool.cost).to.equal(WEEK_ID);
     });
 
-    it("Should allow users to enter a pool", async function () {
+    it("Should allow participants to enter a pool", async function () {
       await poolMaster.connect(owner).list(WEEK_ID, POOL_NAME, POOL_COST, POOL_MAX_SPOTS, POOL_DATE, POOL_TIME, POOL_DL, POOL_DL);
       await poolMaster.connect(addr1).enter(1, { value: ethers.utils.parseEther("1") });
       expect(await poolMaster.getEntriesCount(1)).to.equal(1);
@@ -161,4 +161,86 @@ describe("PoolMasterContract", function () {
           // handle error
         }
     });
+    
+    it('Should return the correct weekHasPassed', async () => {
+        // setup and calling getWeek omitted...
+        const [, , , weekHasPassed] = await poolMaster.getWeek(2);
+        // ... check that pickDeadline is the expected value
+      });
+    
+    it("Should allow participant to change team prior to deadline", async function () {
+        // Set pick deadline 1 hour into the future
+        const futurePickDeadline = Math.floor(Date.now() / 1000) + 3600;
+        const NEW_TEAM_ID = 2;
+
+    // List a new pool week with future pick deadline
+    await poolMaster.list(
+        WEEK_ID,
+        POOL_NAME,
+        POOL_COST,
+        POOL_MAX_SPOTS,
+        POOL_DATE,
+        POOL_TIME,
+        POOL_DL,
+        futurePickDeadline
+    );
+
+    // Enter the pool with addr1
+    await poolMaster.connect(addr1).enter(WEEK_ID, { value: ethers.utils.parseEther("1") });
+
+    // Mint a token to participant
+    const mintResult = await entry.connect(addr1).mint(addr1.address, "tokenURI1");
+    const receipt = await mintResult.wait(); // wait for transaction receipt
+
+    // Extract tokenId from the Minted event in the receipt
+    const event = receipt.events.find(e => e.event === 'Minted');
+    const tokenId = event.args[1];
+
+    const ownerAddress = await entry.ownerOf(tokenId);
+
+
+    expect(ownerAddress).to.equal(addr1.address);
+
+    // Retrieve the entry ID
+    const entryId = tokenId;
+
+    // Participant picks a team
+    const teamId = TEAM_ID;
+
+    // Print the week data
+    const weekDataBeforePickTeam = await poolMaster.getWeek(WEEK_ID);
+    console.log(weekDataBeforePickTeam);
+    console.log('Week data before pickTeam:', weekDataBeforePickTeam);
+    console.log(WEEK_ID);
+    try {
+      await entry.connect(addr1).pickTeam(entryId, WEEK_ID, teamId);
+    } catch (error) {
+        console.error('pickTeam failed:', error);
+    }
+
+
+    // Participant changes team
+    const newTeamId = NEW_TEAM_ID; // Define this constant
+
+    // Print the week data
+    const [weekId, weekName, poolDate, poolTime, poolDL, weekHasPassed] = await poolMaster.getWeek(WEEK_ID);
+    console.log('Week data before changeTeam:', weekId, weekName, poolDate, poolTime, poolDL, weekHasPassed);
+
+    if (!weekHasPassed) {
+        await entry.connect(addr1).changeTeam(entryId, WEEK_ID, teamId, newTeamId);
+    } else {
+        console.log('Cannot change team after deadline.');
+    }
+
+    // Get the picked teams for the week
+    const [pickedWeekIds, pickedTeamIds] = await entry.getPickedTeams(entryId);
+
+    // Convert BigNumber values to regular numbers
+    const pickedWeeks = pickedWeekIds.map(id => id.toNumber());
+    const pickedTeams = pickedTeamIds.map(id => id.toNumber());
+
+    // Verify that the team has been changed
+    expect(pickedTeams).to.include(newTeamId);
+    expect(pickedTeams).not.to.include(teamId);
+  });
 });

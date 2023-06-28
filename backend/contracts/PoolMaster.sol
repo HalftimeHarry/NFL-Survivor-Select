@@ -41,6 +41,7 @@ contract PoolMaster is ERC721 {
         uint256 entryDeadline;
         uint256 pickDeadline;
         uint256 selectionDeadline;
+        bool hasPassed; // Add this line to your struct
     }
 
     mapping(uint256 => Week) public poolWeeks;
@@ -100,7 +101,8 @@ contract PoolMaster is ERC721 {
                 string(abi.encodePacked("Week ", Strings.toString(i))),
                 entryDeadline,
                 pickDeadline,
-                i
+                i,
+                false // Setting initial value of hasPassed to false
             );
         }
     }
@@ -142,7 +144,6 @@ contract PoolMaster is ERC721 {
         require(!hasEntered[_id][msg.sender]);
         require(pools[_id].players > 0, "Pool is already full");
 
-
         pools[_id].players -= 1;
         hasEntered[_id][msg.sender] = true;
         entriesCount[_id] += 1; // Increment the entry count
@@ -159,11 +160,23 @@ contract PoolMaster is ERC721 {
         return pools[_id];
     }
 
-    function getWeek(uint weekId) public view returns (uint256, string memory, uint256, uint256, uint256) {
+    function getWeek(
+        uint weekId
+    )
+        public
+        view
+        returns (uint256, string memory, uint256, uint256, uint256, bool)
+    {
         Week memory week = poolWeeks[weekId];
-        return (week.id, week.name, week.entryDeadline, week.pickDeadline, week.selectionDeadline);
+        return (
+            week.id,
+            week.name,
+            week.entryDeadline,
+            week.pickDeadline,
+            week.selectionDeadline,
+            week.hasPassed
+        );
     }
-
 
     function getEntriesCount(uint256 _id) public view returns (uint256) {
         return entriesCount[_id];
