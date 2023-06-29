@@ -27,6 +27,7 @@ contract Entry is ERC721URIStorage {
 
     event Minted(address indexed to, uint256 indexed tokenId);
     event PickDeadlineEvent(uint256 pickDeadline);
+    event DebugInfo(uint256 weekId, uint256 pickDeadline, uint256 now);
 
     function _baseURI() internal pure override returns (string memory) {
         return "https://mytokenlocation.com";
@@ -61,8 +62,13 @@ contract Entry is ERC721URIStorage {
             "Only the entry owner can pick a team"
         );
 
-        (, , , , uint256 pickDeadline, ) = poolMaster.getWeek(weekId);
+        (, , , , uint256 pickDeadline, bool weekHasPassed) = poolMaster.getWeek(
+            weekId
+        );
         emit PickDeadlineEvent(pickDeadline);
+
+        emit DebugInfo(weekId, pickDeadline, block.timestamp);
+
         require(
             block.timestamp < pickDeadline,
             "Pick deadline for this week has passed"
