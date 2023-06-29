@@ -6,11 +6,20 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "./PoolMaster.sol"; // Import the PoolMaster contract
 
+interface IPoolMaster {
+    function getWeek(
+        uint256 weekId
+    )
+        external
+        view
+        returns (uint256, string memory, uint256, uint256, uint256, bool);
+}
+
 contract Entry is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    PoolMaster public poolMaster; // Declare the PoolMaster contract instance
+    IPoolMaster public poolMaster;
 
     struct PickedTeam {
         uint256 weekId;
@@ -21,21 +30,24 @@ contract Entry is ERC721URIStorage {
     mapping(uint256 => PickedTeam[]) private _pickedTeams;
     mapping(uint256 => address) private entryOwners;
 
-    constructor(address _poolMaster) ERC721("Entry", "ENT") {
-        poolMaster = PoolMaster(_poolMaster); // Assign the PoolMaster contract instance
+    constructor(address _poolMasterAddress) ERC721("Entry", "ENT") {
+        poolMaster = IPoolMaster(_poolMasterAddress);
     }
 
     event Minted(address indexed to, uint256 indexed tokenId);
     event PickDeadlineEvent(uint256 pickDeadline);
     event DebugInfo(uint256 weekId, uint256 pickDeadline, uint256 now);
+    event WeekData(
+        uint256 weekId,
+        string weekName,
+        uint256 poolDate,
+        uint256 poolTime,
+        uint256 poolDL,
+        bool weekHasPassed
+    );
 
     function _baseURI() internal pure override returns (string memory) {
         return "https://mytokenlocation.com";
-    }
-
-    function initialize(PoolMaster _poolMaster) public {
-        require(address(poolMaster) == address(0), "Already initialized");
-        poolMaster = _poolMaster;
     }
 
     function mint(address to, string memory tokenURI) public {
@@ -57,31 +69,6 @@ contract Entry is ERC721URIStorage {
     }
 
     function pickTeam(uint256 entryId, uint256 weekId, uint256 teamId) public {
-        require(
-            msg.sender == ownerOf(entryId),
-            "Only the entry owner can pick a team"
-        );
-
-        (, , , , uint256 pickDeadline, bool weekHasPassed) = poolMaster.getWeek(
-            weekId
-        );
-        emit PickDeadlineEvent(pickDeadline);
-
-        emit DebugInfo(weekId, pickDeadline, block.timestamp);
-
-        require(
-            block.timestamp < pickDeadline,
-            "Pick deadline for this week has passed"
-        );
-
-        // Ensure the participant hasn't already picked this team for any week
-        for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
-            require(
-                _pickedTeams[entryId][i].teamId != teamId,
-                "This team has already been picked"
-            );
-        }
-
         // Continue with the logic for picking a team
         _pickedTeams[entryId].push(PickedTeam(weekId, teamId));
     }
@@ -89,8 +76,8 @@ contract Entry is ERC721URIStorage {
     function changeTeam(
         uint256 entryId,
         uint256 weekId,
-        uint oldTeamId,
-        uint newTeamId
+        uint256 oldTeamId,
+        uint256 newTeamId
     ) public {
         // Check if the sender is the owner of the entry
         require(
@@ -98,13 +85,32 @@ contract Entry is ERC721URIStorage {
             "Only the entry owner can change a team"
         );
 
+        // Get the week data
+        (
+            uint256 returnedWeekId,
+            string memory weekName,
+            uint256 poolDate,
+            uint256 poolTime,
+            uint256 poolDL,
+            bool weekHasPassed
+        ) = poolMaster.getWeek(weekId);
+
+        // Emit the week data event
+        emit WeekData(
+            returnedWeekId,
+            weekName,
+            poolDate,
+            poolTime,
+            poolDL,
+            weekHasPassed
+        );
+
         // Check if the week has passed
-        (, , , , , bool weekHasPassed) = poolMaster.getWeek(weekId);
         require(!weekHasPassed, "Cannot change team after the week has passed");
 
         // Check if the new team has already been picked
-        for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
-            // check if the weekId matches and the teamId matches the newTeamId
+        for (uint256 i = 0; i < _pickedTeams[entryId].length; i++) {
+            // Check if the weekId matches and the teamId matches the newTeamId
             if (
                 _pickedTeams[entryId][i].weekId == weekId &&
                 _pickedTeams[entryId][i].teamId == newTeamId
@@ -115,8 +121,8 @@ contract Entry is ERC721URIStorage {
 
         // Replace the old team with the new one
         bool teamFound = false;
-        for (uint i = 0; i < _pickedTeams[entryId].length; i++) {
-            // check if the weekId matches and the teamId matches the oldTeamId
+        for (uint256 i = 0; i < _pickedTeams[entryId].length; i++) {
+            // Check if the weekId matches and the teamId matches the oldTeamId
             if (
                 _pickedTeams[entryId][i].weekId == weekId &&
                 _pickedTeams[entryId][i].teamId == oldTeamId

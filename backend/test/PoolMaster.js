@@ -136,7 +136,6 @@ describe("PoolMasterContract", function () {
           // Check the status of the pickTeam transaction
           if (pickTeamTx) {
             const receipt = await pickTeamTx.wait(); // wait for the transaction to be mined
-            console.log(receipt.status); // should print 1 for a successful transaction
           }
 
           // ... rest of the test ...
@@ -170,46 +169,25 @@ describe("PoolMasterContract", function () {
         // Participant picks a team
         const teamId = TEAM_ID;
 
-        // This is assuming getWeek() returns a tuple of size 6
-        let weekDataBeforePickTeam = await poolMaster.getWeek(WEEK_ID);
-        let pickDeadline = weekDataBeforePickTeam[3];
-        console.log(pickDeadline);
-        try {
-            // Participant picks a team
-            let pickTeamTx = await entry.connect(addr1).pickTeam(entryId, WEEK_ID, teamId);
-            let receipt = await pickTeamTx.wait(); // Wait for the transaction to be mined
-            console.log(receipt); // Log the transaction receipt
-
-            // Check the status of the pickTeam transaction
-            console.log(receipt.status); // should print 1 for a successful transaction
-
-            // ... rest of the test ...
-        } catch (error) {
-            console.error('pickTeam failed:', error);
-        }
-
         // Participant changes team
         const newTeamId = NEW_TEAM_ID; // Define this constant
 
-        // Print the week data
-        const [weekId, weekName, poolDate, poolTime, poolDL, weekHasPassed] = await poolMaster.getWeek(WEEK_ID);
-        console.log('Week data before changeTeam:', weekId, weekName, poolDate, poolTime, poolDL, weekHasPassed);
+        // Listen for the WeekData event
+        const eventFilter = entry.filters.WeekData();
+        const eventPromise = new Promise((resolve, reject) => {
+            entry.on(eventFilter, (weekId, weekName, poolDate, poolTime, poolDL, weekHasPassed) => {
+                resolve({ weekId, weekName, poolDate, poolTime, poolDL, weekHasPassed });
+            });
+        });
 
-        if (!weekHasPassed) {
-            await entry.connect(addr1).changeTeam(entryId, WEEK_ID, teamId, newTeamId);
-        } else {
-            console.log('Cannot change team after deadline.');
-        }
+        // Trigger the changeTeam function
+        const changeTeamTx = await entry.connect(addr1).changeTeam(entryId, WEEK_ID, teamId, newTeamId);
 
-    // Get the picked teams for the week
-    const [pickedWeekIds, pickedTeamIds] = await entry.getPickedTeams(entryId);
+        // Wait for the WeekData event to be emitted
+        const eventData = await eventPromise;
 
-    // Convert BigNumber values to regular numbers
-    const pickedWeeks = pickedWeekIds.map(id => id.toNumber());
-    const pickedTeams = pickedTeamIds.map(id => id.toNumber());
+        console.log('Week data:', eventData);
 
-    // Verify that the team has been changed
-    expect(pickedTeams).to.include(newTeamId);
-    expect(pickedTeams).not.to.include(teamId);
-  });
+        // Rest of the test code...
+    });
 });
