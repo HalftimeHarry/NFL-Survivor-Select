@@ -101,20 +101,25 @@ contract PoolRewardManager {
             "Only the PoolMaster can distribute rewards"
         );
         require(
-            totalActiveEntries > 0,
-            "No active entries to distribute rewards"
+            totalEntries > 0,
+            "No entries to distribute rewards"
         );
 
-        uint256 rewardAmount = rewardPool / totalActiveEntries;
+        uint256 rewardAmount = rewardPool / totalEntries;
+        uint256 deployerReward = (rewardPool * 10) / 100; // 10% of the reward pool
 
+        // Distribute rewards to participants
         for (uint256 i = 1; i <= totalEntries; i++) {
-            if (isActiveEntry[i]) {
-                address recipient = poolMaster.entryContract().ownerOf(i);
-                payable(recipient).transfer(rewardAmount);
-                emit RewardDistributed(recipient, rewardAmount);
-            }
+            address recipient = poolMaster.entryContract().ownerOf(i);
+            payable(recipient).transfer(rewardAmount);
+            emit RewardDistributed(recipient, rewardAmount);
         }
 
+        // Transfer deployer's reward
+        payable(deployer).transfer(deployerReward);
+
+        // Reset the reward pool
         rewardPool = 0;
     }
+
 }
