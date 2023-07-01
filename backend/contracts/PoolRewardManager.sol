@@ -95,15 +95,33 @@ contract PoolRewardManager {
         totalActiveEntries = 0;
     }
 
+    function updateEntryStatusOnOutcome(
+        uint256 _entryId,
+        bool _isWinner
+    ) external {
+        require(
+            msg.sender == address(poolMaster),
+            "Only the PoolMaster can update entry status"
+        );
+        require(_entryId <= totalEntries, "Invalid entry ID");
+
+        if (_isWinner && !isActiveEntry[_entryId]) {
+            isActiveEntry[_entryId] = true;
+            totalActiveEntries++;
+            emit EntryStatusChanged(_entryId, true);
+        } else if (!_isWinner && isActiveEntry[_entryId]) {
+            isActiveEntry[_entryId] = false;
+            totalActiveEntries--;
+            emit EntryStatusChanged(_entryId, false);
+        }
+    }
+
     function distributeRewards() external {
         require(
             msg.sender == address(poolMaster),
             "Only the PoolMaster can distribute rewards"
         );
-        require(
-            totalEntries > 0,
-            "No entries to distribute rewards"
-        );
+        require(totalEntries > 0, "No entries to distribute rewards");
 
         uint256 rewardAmount = rewardPool / totalEntries;
         uint256 deployerReward = (rewardPool * 10) / 100; // 10% of the reward pool
@@ -121,5 +139,4 @@ contract PoolRewardManager {
         // Reset the reward pool
         rewardPool = 0;
     }
-
 }
