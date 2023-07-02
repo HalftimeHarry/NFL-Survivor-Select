@@ -1,5 +1,5 @@
 import { ethers } from "ethers"
-import escrow from "/workspace/Albatross-1/backend/artifacts/contracts/Escrow.sol/Escrow.json"
+import escrow from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json"
 
 class SignersProvider {
     constructor() {
@@ -17,10 +17,8 @@ class SignersProvider {
             address: escrow.address
         });
         return {
-            getSeller: async () => await contract.seller(),
-            getInspector: async () => await contract.inspector(),
-            getLender: async () => await contract.lender(),
-            getDAO: async () => await contract.dao(),
+            getDeployer: async () => await contract.deployer(),
+            getParticipant: async () => await contract.participant(),
         }
     }
 }
