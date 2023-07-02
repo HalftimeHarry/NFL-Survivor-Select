@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import JsonViewer from '../lib/components/JsonViewer.svelte';
-	import Navbar from '/workspace/Albatross-1/frontend/src/lib/components/Navbar.svelte';
+	import Navbar from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/Navbar.svelte';
 	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/controllers/MetamaskController.js';
 	import navbarController from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/Navbar.svelte';
 

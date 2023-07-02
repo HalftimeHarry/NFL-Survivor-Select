@@ -22,8 +22,8 @@ class SignersController {
     }
   
     async #getSigners() {
-        const deployer = await this.signersProvider?.escrowContract.getDeployer();
-        const participant = await this.signersProvider?.escrowContract.getParticipant();
+        const deployer = await this.signersProvider?.poolMasterContract.getDeployer();
+        const participant = await this.signersProvider?.poolMasterContract.getParticipant();
       this.#signersStore.set({ deployer, participant });
     }
 
