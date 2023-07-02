@@ -1,5 +1,5 @@
 <script>
-	import MetamaskController from '/workspace/Albatross-1/frontend/src/lib/controllers/MetamaskController.js';
+	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/controllers/MetamaskController.js';
 
 	export let address = null;
 	export let balance;
@@ -79,7 +79,7 @@
 					<a
 						href="/"
 						class="block py-2 pl-3 pr-4 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white"
-						aria-current="page">Franchise</a
+						aria-current="page">Entry</a
 					>
 				</li>
 				<li>

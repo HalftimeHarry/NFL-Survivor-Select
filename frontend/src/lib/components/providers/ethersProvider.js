@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
-import escrowAbi from "/workspace/Albatross-1/backend/artifacts/contracts/Escrow.sol/Escrow.json";
-import franchiseAbi from "/workspace/Albatross-1/backend/artifacts/contracts/Franchise.sol/Franchise.json";
+import entryAbi from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Entry.sol/Entry.json";
+import poolMasterAbi from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json";
+import poolRewardManagerAbi from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolRewardManager.sol/PoolRewardManager.json";
 
 
 
@@ -14,78 +15,24 @@ class EthersProvider {
     return new ethers.Contract(address, abi, this.signer);
   }
 
-  get escrowContract() {
+  get entryContract() {
     const contract = this.getContract({
-      abi: escrowAbi.abi,
-      address: escrowAbi.address
+      abi: entryAbi.abi,
+      address: entryAbi.address
     });
     return {
       getFundingProgress: async (nftID) => {
-        const currentDeposit = await contract.currentDeposit(nftID);
-        const goalAmount = await contract.goalAmount(nftID);
-        if (goalAmount.eq(0)) {
-          return 0;
-        }
-        return currentDeposit.mul(100).div(goalAmount);
+        const currentTeam = await contract.getPickedTeams(nftID);
+
+        return currentTeam;
       },
-      approveSale: async (nftID) => {
-        const transaction = await contract.connect(this.signer).approveSale(nftID);
-        await transaction.wait();
-      },
-      updateInspectionStatus: async (nftID, status) => {
-        const transaction = await contract.connect(this.signer).updateInspectionStatus(nftID, status);
-        await transaction.wait();
-      },
-      getInspector: async () => await contract.inspector(),
-      getLender: async () => await contract.lender(),
-      getDao: async () => await contract.dao(),
-      getSeller: async () => await contract.seller(),
-      getApprovalStatus: async (nftID, address) => {
-        return await contract.approval(nftID, address);
-      },
-      buyerDepositEarnest: async (nftID, { amount }) => {
-        const amountInWei = ethers.utils.parseUnits(amount.toString(), 'ether');
-        const tx = await contract.connect(this.signer).depositEarnest(nftID, { value: amountInWei });
-        const receipt = await tx.wait();
-        return receipt;
-      },
-      lenderLendFunds: async (nftID, { amount }) => {
-        const amountInWei = ethers.utils.parseUnits(amount.toString(), 'ether');
-        const tx = await contract.connect(this.signer).depositEarnest(nftID, { value: amountInWei });
-        const receipt = await tx.wait();
-        return receipt;
-      },
-      finalizeSale: async (nftID) => {
-        const tx = await contract.connect(this.signer).finalizeSale(nftID);
-        const receipt = await tx.wait();
-        return receipt;
-      },
-      getInspectionStatus: async (nftID) => {
-        return await contract.inspectionPassed(nftID);
-      },
-      getIsListed: async (nftID) => {
-        return await contract.getIsListed(nftID);
-      },
-      getGoalAmount: async (nftID) => {
-        return await contract.goalAmount(nftID);
-      },
-      getDeadLine: async (nftID) => {
-        return await contract.deadline(nftID);
-        },
-      getPurchasePrice: async (nftID) => {
-        console.log(`getPurchasePrice called with nftID: ${nftID}`);
-        return await contract.purchasePrice(nftID);
-        },
-      getContributions: async (nftID) => {
-          return await contract.currentDeposit(nftID);
-        },
-      };
+    };
   }
 
-  get franchiseContract() {
+  get poolMasterContract() {
     const contract = this.getContract({
-      abi: franchiseAbi.abi,
-      address: franchiseAbi.address
+      abi: poolMasterAbi.abi,
+      address: poolMasterAbi.address
     });
     return {
       getTotalSupply: async () => await contract.totalSupply(),
@@ -103,10 +50,31 @@ class EthersProvider {
     }
   }
 
+    get poolRewardManagerContract() {
+      const contract = this.getContract({
+        abi: poolRewardManagerAbi.abi,
+        address: poolRewardManagerAbi.address
+      });
+      return {
+        getTotalSupply: async () => await contract.totalSupply(),
+        getTokenURI: async () => {
+          const nfts = []
+          const totalSupply = await contract.totalSupply()
+          for (var i = 1; i <= totalSupply; i++) {
+            const uri = await contract.tokenURI(i);
+            const response = await fetch(uri)
+            const metadapp = await response.json()
+            nfts.push(metadapp)   
+          }
+          return nfts
+        }
+      }
+    }
+
     attachLogSuccessListener(callback) {
     const contract = this.getContract({
-      abi: escrowAbi.abi,
-      address: escrowAbi.address
+      abi: entryAbi.abi,
+      address: entryAbi.address
     });
     contract.on("LogSuccess", callback);
   }

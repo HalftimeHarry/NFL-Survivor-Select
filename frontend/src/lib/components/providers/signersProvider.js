@@ -1,5 +1,5 @@
 import { ethers } from "ethers"
-import escrow from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json"
+import poolMaster from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json"
 
 class SignersProvider {
     constructor() {
@@ -11,10 +11,10 @@ class SignersProvider {
         return new ethers.Contract(address, abi, this.signer);
     }
 
-    get escrowContract() {
+    get poolMasterContract() {
         const contract = this.getContract({
-            abi: escrow.abi,
-            address: escrow.address
+            abi: poolMaster.abi,
+            address: poolMaster.address
         });
         return {
             getDeployer: async () => await contract.deployer(),
