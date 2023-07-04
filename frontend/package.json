@@ -12,8 +12,8 @@
 		"format": "prettier --plugin-search-dir . --write ."
 	},
 	"devDependencies": {
-		"@floating-ui/dom": "^1.2.9",
-		"@skeletonlabs/skeleton": "^1.6.2",
+		"@floating-ui/dom": "^1.4.3",
+		"@skeletonlabs/skeleton": "^1.8.0",
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.5.0",
 		"@tailwindcss/forms": "^0.5.3",
@@ -35,8 +35,5 @@
 		"typescript": "^5.0.0",
 		"vite": "^4.3.0"
 	},
-	"type": "module",
-	"dependencies": {
-		"ethers": "^6.6.2"
-	}
+	"type": "module"
 }

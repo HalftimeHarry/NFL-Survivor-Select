@@ -1,59 +1,48 @@
-<script>
+<script lang="ts">
+	import { writable } from 'svelte/store';
+	import { AppBar, AppShell } from '@skeletonlabs/skeleton';
+	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/MetamaskController';
 	import { onMount } from 'svelte';
-	import JsonViewer from '../lib/components/JsonViewer.svelte';
-	import Navbar from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/Navbar.svelte';
-	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/controllers/MetamaskController.js';
-	import navbarController from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/Navbar.svelte';
 
-	const onChainChanged = (chainId) => {
-		chainId = parseInt(chainId, 16);
-		MetamaskController.networkChanged(chainId);
-	};
-
-	const { store } = MetamaskController;
-	const { nav_store } = navbarController;
-
-	onMount(async () => {
-		await MetamaskController.init();
-		await navbarController.init();
-		if ($store.isMetamaskInstalled) {
-			window.ethereum.on('chainChanged', onChainChanged);
-		}
+	const store = writable({
+		isConneted: false,
+		isWrongNetwork: false,
+		isMetamaskInstalled: false,
+		message: '',
+		isLocked: false
 	});
 
-	$: ({ address, balance } = $nav_store);
+	const metamaskController = MetamaskController;
+
+	onMount(async () => {
+		await metamaskController.init(store);
+	});
+
+	async function connect() {
+		await metamaskController.init(store);
+	}
 
 	$: ({ isConneted, isWrongNetwork, isMetamaskInstalled, message, isLocked } = $store);
+
+	function onChainChanged(arg0: string, onChainChanged: any) {
+		throw new Error('Function not implemented.');
+	}
 </script>
 
-<div class="app">
-	<Navbar {address} {balance} />
-	<div class="bg-black">
-		<header />
-		<main>
-			{#if isConneted}
-				<slot />
-			{:else if isWrongNetwork}
-				<p>Wrong network conneted</p>
-			{:else if isMetamaskInstalled}
-				<p>{message}</p>
-			{:else if isLocked}
-				<p>Please unlock your account</p>
-			{:else}
-				<p>Loading...</p>
-			{/if}
-		</main>
-		<footer class="bg-gray-800 py-4">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex justify-between">
-					<div class="text-gray-400">RFID Crypto Demo © 2023</div>
-					<div>
-						<a href="/privacy" class="text-gray-400 hover:text-white"> Privacy Policy </a>
-						<span class="text-gray-400 mx-2">|</span>
-						<a href="/terms" class="text-gray-400 hover:text-white"> Terms of Use </a>
-					</div>
-				</div>
-			</div>
-		</footer>
-	</div>
-</div>
+<AppShell>
+	<svelte:fragment slot="header">
+		<AppBar />
+	</svelte:fragment>
+	{#if isConneted}
+		<p>Connected!</p>
+	{:else if isWrongNetwork}
+		<p>Wrong network connected</p>
+	{:else if isMetamaskInstalled}
+		<p>{message}</p>
+	{:else if isLocked}
+		<p>Please unlock your account</p>
+	{:else}
+		<p>Loading...</p>
+	{/if}
+	<slot />
+</AppShell>

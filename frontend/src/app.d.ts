@@ -7,9 +7,3 @@ declare namespace App {
 	// interface Error {}
 	// interface Platform {}
 }
-
-interface Team {
-  name: string;
-  image: string;
-  // Add additional properties as needed
-}
