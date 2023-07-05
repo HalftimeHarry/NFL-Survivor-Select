@@ -110,9 +110,9 @@ class EthersProvider {
     });
     // Add the rest of the HorseMarket contract methods here and return the object
     return {
-      listHorseForSale: async (tokenId: number, saleType: number, price: number, deadline: number, account: string) => {
+      pickTeam: async (entryId: number, weekId: number, teamId: number) => {
           try {
-            const result = await contract.listHorseForSale(tokenId, saleType, price, deadline, account);
+            const result = await contract.pickTeam(entryId, weekId, teamId);
             return result;
           } catch (error) {
             console.error('Error listing horse for sale:', error);
