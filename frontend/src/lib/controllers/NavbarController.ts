@@ -11,6 +11,7 @@ class NavbarController {
     #navbarManagerStore=writable({...baseState})
   nav_store: any;
   ethersProvider: any;
+	store: any;
   
     constructor() {
         this.nav_store = {

@@ -1,12 +1,15 @@
-<script lang="ts">
-	// The ordering of these imports is critical to your app working properly
-	import '@skeletonlabs/skeleton/themes/theme-crimson.css';
-	// If you have source.organizeImports set to true in VSCode, then it will auto change this ordering
-	import '@skeletonlabs/skeleton/styles/all.css';
-	import { AppBar, AppShell } from '@skeletonlabs/skeleton';
-	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/MetamaskController';
+<script>
+	import '/workspace/NFL-Survivor-Select/frontend/app.css';
 	import { onMount } from 'svelte';
+	import JsonViewer from '../lib/components/JsonViewer.svelte';
+	import Navbar from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/Navbar.svelte';
+	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/MetamaskController';
 	import navbarController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/NavbarController';
+
+	const onChainChanged = (chainId) => {
+		chainId = parseInt(chainId, 16);
+		MetamaskController.networkChanged(chainId);
+	};
 
 	const { store } = MetamaskController;
 	const { nav_store } = navbarController;
@@ -22,46 +25,52 @@
 	$: ({ address, balance } = $nav_store);
 
 	$: ({ isConneted, isWrongNetwork, isMetamaskInstalled, message, isLocked } = $store);
-
-	let address: string | any[] | null = null;
-	let balance: any;
-
-	async function connect() {
-		await MetamaskController.init();
-	}
-
-	function onChainChanged(arg0: string, onChainChanged: any) {
-		throw new Error('Function not implemented.');
-	}
 </script>
 
-<AppShell>
-	<svelte:fragment slot="header">
-		<AppBar
-			{balance}
-			gridColumns="grid-cols-3"
-			slotDefault="place-self-center"
-			slotTrail="place-content-end"
-		>
-			<svelte:fragment slot="lead">{balance}</svelte:fragment>
-			<h2>NFL Survivor Select</h2>
-			<svelte:fragment slot="trail">
-				<button on:click={connect} type="button" class="btn variant-filled">
-					{address ? `${address.slice(0, 5)}...${address.slice(-4)}` : 'Connect'}
-				</button>
-			</svelte:fragment>
-		</AppBar>
-	</svelte:fragment>
-	{#if isConneted}
-		<p>Connected! With address {address}</p>
-	{:else if isWrongNetwork}
-		<p>Wrong network connected</p>
-	{:else if isMetamaskInstalled}
-		<p>{message}</p>
-	{:else if isLocked}
-		<p>Please unlock your account</p>
-	{:else}
-		<p>Loading...</p>
-	{/if}
-	<slot />
-</AppShell>
+<div class="app">
+	<Navbar {address} {balance} />
+	<div class="bg-black">
+		<header />
+		<main>
+			{#if isConneted}
+				<slot />
+			{:else if isWrongNetwork}
+				<p>Wrong network connected</p>
+			{:else if isMetamaskInstalled}
+				<p>{message}</p>
+			{:else if isLocked}
+				<p>Please unlock your account</p>
+			{:else}
+				<p>Loading...</p>
+			{/if}
+		</main>
+		<footer class="bg-gray-800 py-4">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="flex justify-between">
+					<div class="text-gray-400">LMS Demo © 2023</div>
+					<div>
+						<a href="/privacy" class="text-gray-400 hover:text-white"> Privacy Policy </a>
+						<span class="text-gray-400 mx-2">|</span>
+						<a href="/terms" class="text-gray-400 hover:text-white"> Terms of Use </a>
+					</div>
+				</div>
+			</div>
+		</footer>
+	</div>
+</div>
+
+<style global lang="postcss">
+	@tailwind base;
+	@tailwind components;
+	@tailwind utilities;
+
+	.app {
+		/* Add your custom styles here */
+	}
+
+	.bg-black {
+		/* Add your custom styles here */
+	}
+
+	/* Add more custom styles as needed */
+</style>
