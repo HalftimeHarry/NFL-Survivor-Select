@@ -1,25 +1,27 @@
-import { ethers } from "ethers"
-import entry from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Entry.sol/Entry.json"
+import EthersProvider from "/workspace/NFL-Survivor-Select/frontend/src/lib/providers/ethersProvider";
+import entryABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Entry.sol/Entry.json";
+import { DeployerAddress } from "/workspace/NFL-Survivor-Select/frontend/src/lib/providers/contractAddresses";
 
 class SignersProvider {
     constructor() {
-        this.provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-        this.signer = this.provider.getSigner();
+        this.ethersProvider = new EthersProvider();
     }
 
-    getContract({ address, abi }) {
-        return new ethers.Contract(address, abi, this.signer);
-    }
-
-    get entryContract() {
-        const contract = this.getContract({
-            abi: entry.abi,
-            address: entry.address
+    async getDeployer() {
+        // DeployerAddress is used for the Entry contract
+        return this.ethersProvider.getContract({
+            abi: entryABI.abi,
+            address: DeployerAddress
         });
-        return {
-            getDeployer: async () => await contract.deployer(),
-            getParticipant: async () => await contract.participant(),
-        }
+    }
+
+    async getParticipant() {
+        // In this example, participant and deployer are assumed to be the same.
+        // Replace with the correct address if needed.
+        return this.ethersProvider.getContract({
+            abi: entryABI.abi,
+            address: DeployerAddress
+        });
     }
 }
 

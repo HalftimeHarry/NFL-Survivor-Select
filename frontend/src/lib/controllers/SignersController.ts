@@ -1,32 +1,34 @@
-import SignersProvider from "/workspace/NFL-Survivor-Select/frontend/src/lib/providers/signersProvider";
+import EthersProvider from "/workspace/NFL-Survivor-Select/frontend/src/lib/providers/ethersProvider";
 import { writable } from "svelte/store";
 
 const baseState = {
     deployer: "loading deployer...",
     participant: "loading participant..."
-}
-
+};
 
 class SignersController { 
-    #signersStore=writable({...baseState})
+    #signersStore = writable({...baseState});
   
     constructor() {
-        this.signers_store = {
-            subscribe: this.#signersStore.subscribe
-        }
+        this.ethersProvider = new EthersProvider();
     }
       
     async init() {
-        this.signersProvider = new SignersProvider();
-        this.#getSigners();
+        await this.#getSigners();
     }
   
     async #getSigners() {
-        const deployer = await this.signersProvider?.escrowContract.getDeployer();
-        const participant = await this.signersProvider?.escrowContract.getParticipant();
-      this.#signersStore.set({ seller, lender, inspector, dao });
+        const deployer = await this.ethersProvider.deployerAddress;
+        // Assuming getParticipantAddress() method exists in the ethers provider
+        const participant = await this.ethersProvider.getParticipantAddress(); 
+        this.#signersStore.set({ deployer, participant });
     }
 
+    get signersStore() {
+        return {
+            subscribe: this.#signersStore.subscribe,
+        };
+    }
 }
 
 export default new SignersController();
