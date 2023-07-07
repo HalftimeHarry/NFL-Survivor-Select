@@ -10,15 +10,15 @@ const baseState = {
 };
 
 class PoolRewardManagerController {
-    #poolRewardsManagerStore = writable({ ...baseState });
+    #poolRewardManagerStore = writable({ ...baseState });
 
     constructor() {
         this.ethersProvider = new EthersProvider();
     }
 
-    get poolRewardsManagerStore() {
+    get poolRewardManagerStore() {
         return {
-            subscribe: this.#poolRewardsManagerStore.subscribe,
+            subscribe: this.#poolRewardManagerStore.subscribe,
         };
     }
 
@@ -32,34 +32,34 @@ class PoolRewardManagerController {
 
     async #updatePoolRewardManagerDeployerAddress() {
         const deployer = await this.ethersProvider.deployerAddress;
-        this.#poolRewardsManagerStore.update((s) => ({ ...s, deployer }));
+        this.#poolRewardManagerStore.update((s) => ({ ...s, deployer }));
     }
 
     async #updatePoolMaster() {
         // Assuming getPoolMaster method exists in the ethers provider
         const poolMaster = await this.ethersProvider.getPoolMasterAddress();
-        this.#poolRewardsManagerStore.update((s) => ({ ...s, poolMaster }));
+        this.#poolRewardManagerStore.update((s) => ({ ...s, poolMaster }));
     }
 
     async #updateTotalEntries() {
         // Assuming getTotalEntries method exists in the ethers provider
         const totalEntries = await this.ethersProvider.getTotalEntries();
-        this.#poolRewardsManagerStore.update((s) => ({ ...s, totalEntries }));
+        this.#poolRewardManagerStore.update((s) => ({ ...s, totalEntries }));
     }
 
     async #updateTotalActiveEntries() {
         // Assuming getTotalActiveEntries method exists in the ethers provider
         const totalActiveEntries = await this.ethersProvider.getTotalActiveEntries();
-        this.#poolRewardsManagerStore.update((s) => ({ ...s, totalActiveEntries }));
+        this.#poolRewardManagerStore.update((s) => ({ ...s, totalActiveEntries }));
     }
 
     async #updateRewardPool() {
         // Assuming getRewardPool method exists in the ethers provider
         const rewardPool = await this.ethersProvider.getRewardPool();
-        this.#poolRewardsManagerStore.update((s) => ({ ...s, rewardPool }));
+        this.#poolRewardManagerStore.update((s) => ({ ...s, rewardPool }));
     }
 }
 
-const poolRewardsManagerController = new PoolRewardManagerController();
+const poolRewardManagerController = new PoolRewardManagerController();
 
-export default poolRewardsManagerController;
+export default poolRewardManagerController;

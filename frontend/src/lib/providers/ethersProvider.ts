@@ -1,12 +1,9 @@
 import { ethers } from "ethers";
-import entryABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Entry.sol/Entry.json";
 import poolMasterABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json";
-import poolRewardMasterABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolRewardManager.sol/PoolRewardManager.json";
+import poolRewardManagerABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolRewardManager.sol/PoolRewardManager.json";
 import {
-  DeployerAddress,
   PoolMasterAddress,
-  PoolRewardAddress,
-  EntryAddress
+  PoolRewardManagerAddress
 } from "./contractAddresses";
 
 class EthersProvider {
@@ -66,10 +63,6 @@ class EthersProvider {
     return contract;
   }
 
-  get deployerAddress() {
-    return DeployerAddress;
-  }
-
   getPoolMasterContract() {
     const contract = this.getContract({
       abi: poolMasterABI.abi,
@@ -77,94 +70,40 @@ class EthersProvider {
     });
 
     return {
-      list: async (
-        weekId: number,
-        name: string,
-        cost: number,
-        maxSpots: number,
-        date: string,
-        time: string,
-        entryDeadline: string,
-        pickDeadline: string
-      ) => {
-        return await contract.methods
-          .list(
-            weekId,
-            name,
-            cost,
-            maxSpots,
-            date,
-            time,
-            entryDeadline,
-            pickDeadline
-          )
-          .send({ from: this.account });
-      },
-      enter: async (id: number) => {
-        return await contract.methods.enter(id).send({ from: this.account });
-      },
-      getPool: async (id: number) => {
-        return await contract.methods.getPool(id).call({ from: this.account });
-      },
-      getWeek: async (weekId: number) => {
-        return await contract.methods.getWeek(weekId).call({ from: this.account });
-      },
-      getEntriesCount: async (id: number) => {
-        return await contract.methods.getEntriesCount(id).call({ from: this.account });
-      },
-      canSelectTeam: async (id: number) => {
-        return await contract.methods.canSelectTeam(id).call({ from: this.account });
-      },
-      setByeWeek: async (teamId: number, weekId: number) => {
-        return await contract.methods.setByeWeek(teamId, weekId).send({ from: this.account });
-      },
-      getPickDeadline: async (id: number) => {
-        return await contract.methods.getPickDeadline(id).call({ from: this.account });
-      },
-      withdraw: async () => {
-        return await contract.methods.withdraw().send({ from: this.account });
-      },
+      // existing methods
     };
   }
 
-  getEntryContract() {
+  getPoolRewardManagerContract() {
     const contract = this.getContract({
-      abi: entryABI.abi,
-      address: EntryAddress,
+      abi: poolRewardManagerABI.abi,
+      address: PoolRewardManagerAddress,
     });
 
     return {
-      pickTeam: async (entryId: number, weekId: number, teamId: number) => {
-        try {
-          const result = await contract.pickTeam(entryId, weekId, teamId);
-          return result;
-        } catch (error) {
-          console.error('Error picking team:', error);
-        }
+      updateEntryStatus: async (entryId: number, isActive: boolean) => {
+        return await contract.updateEntryStatus(entryId, isActive);
       },
-      ownerOf: async (tokenId: number) => {
-        try {
-          const result = await contract.ownerOf(tokenId);
-          return result;
-        } catch (error) {
-          console.error('Error getting owner of token:', error);
-        }
+      endPool: async (poolId: number) => {
+        return await contract.endPool(poolId);
       },
-      totalSupply: async () => {
-        try {
-          const result = await contract.totalSupply();
-          return result;
-        } catch (error) {
-          console.error('Error getting total supply:', error);
-        }
+      updateEntryStatusOnOutcome: async (entryId: number, isWinner: boolean) => {
+        return await contract.updateEntryStatusOnOutcome(entryId, isWinner);
       },
-      tokenURI: async (tokenId: number) => {
-        try {
-          const result = await contract.tokenURI(tokenId);
-          return result;
-        } catch (error) {
-          console.error('Error getting token URI:', error);
-        }
+      distributeRewards: async () => {
+        return await contract.distributeRewards();
+      },
+      isActiveEntry: async (entryId: number) => {
+        return await contract.isActiveEntry(entryId);
+      },
+      totalEntries: async () => {
+        return await contract.totalEntries();
+      },
+      totalActiveEntries: async () => {
+        return await contract.totalActiveEntries();
+      },
+      rewardPool: async () => {
+        return await contract.rewardPool();
       },
     };
   }
