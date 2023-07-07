@@ -27,7 +27,7 @@
 	const ethersProvider = new EthersProvider();
 </script>
 
-<section class="container mx-auto ml-auto">
+<section class="container mx-auto ml-auto text-white bg-black">
 	<div>
 		Entry Owner: {entryOwner}
 	</div>

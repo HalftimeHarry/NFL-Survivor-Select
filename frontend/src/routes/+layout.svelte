@@ -28,7 +28,7 @@
 
 <div class="app">
 	<Navbar {address} {balance} />
-	<div class="bg-black">
+	<div class="container mx-auto ml-auto text-white">
 		<header />
 		<main>
 			{#if isConneted}

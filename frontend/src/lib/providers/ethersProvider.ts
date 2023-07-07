@@ -9,15 +9,14 @@ import {
   EntryAddress
 } from "./contractAddresses";
 
-
-
 class EthersProvider {
   provider: ethers.providers.Web3Provider;
   signer: ethers.providers.JsonRpcSigner;
   account: string;
 
-  constructor(account?: string) {
+  constructor(account: string = '') {
     this.account = account;
+
     if (typeof window !== 'undefined') {
       this.provider = new ethers.providers.Web3Provider(window.ethereum, "any");
       this.signer = this.provider.getSigner();
@@ -56,67 +55,116 @@ class EthersProvider {
       console.error("No web3 provider detected");
     }
   }
-    // Add this method to the EthersProvider class
+
+  // Add this method to the EthersProvider class
   async listAccounts() {
     return await this.provider.listAccounts();
   }
-  getContract({ abi, address }) {
-  const contract = new ethers.Contract(address, abi, this.signer);
-  return contract;
-}
+
+  getContract({ abi, address }: { abi: any, address: string }) {
+    const contract = new ethers.Contract(address, abi, this.signer);
+    return contract;
+  }
+
   get deployerAddress() {
     return DeployerAddress;
   }
+
   getPoolMasterContract() {
-  const contract = this.getContract({
-    abi: poolMasterABI.abi,
-    address: PoolMasterAddress,
-  });
-
-  return {
-    list: async (
-      weekId: number,
-      participant: string,
-      cost: number,
-      maxSpots: number,
-      spots: number,
-      date: string,
-      time: string,
-      entryDeadline: string,
-      pickDeadline: string
-    ) => {
-      return await contract.methods
-        .list(weekId, participant, cost, maxSpots, spots, date, time, entryDeadline, pickDeadline)
-        .send({ from: this.account });
-    },
-  };
-}
-
-    getPoolRewardContract() {
     const contract = this.getContract({
-        abi: poolRewardMasterABI.abi,
-        address: PoolRewardAddress,
+      abi: poolMasterABI.abi,
+      address: PoolMasterAddress,
     });
+
     return {
-      updateEntryStatus: async (address: string) => {
-        return await contract.updateEntryStatus(address);
+      list: async (
+        weekId: number,
+        name: string,
+        cost: number,
+        maxSpots: number,
+        date: string,
+        time: string,
+        entryDeadline: string,
+        pickDeadline: string
+      ) => {
+        return await contract.methods
+          .list(
+            weekId,
+            name,
+            cost,
+            maxSpots,
+            date,
+            time,
+            entryDeadline,
+            pickDeadline
+          )
+          .send({ from: this.account });
+      },
+      enter: async (id: number) => {
+        return await contract.methods.enter(id).send({ from: this.account });
+      },
+      getPool: async (id: number) => {
+        return await contract.methods.getPool(id).call({ from: this.account });
+      },
+      getWeek: async (weekId: number) => {
+        return await contract.methods.getWeek(weekId).call({ from: this.account });
+      },
+      getEntriesCount: async (id: number) => {
+        return await contract.methods.getEntriesCount(id).call({ from: this.account });
+      },
+      canSelectTeam: async (id: number) => {
+        return await contract.methods.canSelectTeam(id).call({ from: this.account });
+      },
+      setByeWeek: async (teamId: number, weekId: number) => {
+        return await contract.methods.setByeWeek(teamId, weekId).send({ from: this.account });
+      },
+      getPickDeadline: async (id: number) => {
+        return await contract.methods.getPickDeadline(id).call({ from: this.account });
+      },
+      withdraw: async () => {
+        return await contract.methods.withdraw().send({ from: this.account });
       },
     };
   }
-    getEntryContract() {
+
+  getEntryContract() {
     const contract = this.getContract({
       abi: entryABI.abi,
       address: EntryAddress,
     });
-    // Add the rest of the HorseMarket contract methods here and return the object
+
     return {
       pickTeam: async (entryId: number, weekId: number, teamId: number) => {
-          try {
-            const result = await contract.pickTeam(entryId, weekId, teamId);
-            return result;
-          } catch (error) {
-            console.error('Error listing horse for sale:', error);
-          }
+        try {
+          const result = await contract.pickTeam(entryId, weekId, teamId);
+          return result;
+        } catch (error) {
+          console.error('Error picking team:', error);
+        }
+      },
+      ownerOf: async (tokenId: number) => {
+        try {
+          const result = await contract.ownerOf(tokenId);
+          return result;
+        } catch (error) {
+          console.error('Error getting owner of token:', error);
+        }
+      },
+      totalSupply: async () => {
+        try {
+          const result = await contract.totalSupply();
+          return result;
+        } catch (error) {
+          console.error('Error getting total supply:', error);
+        }
+      },
+      tokenURI: async (tokenId: number) => {
+        try {
+          const result = await contract.tokenURI(tokenId);
+          return result;
+        } catch (error) {
+          console.error('Error getting token URI:', error);
+        }
       },
     };
   }
