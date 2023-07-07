@@ -1,7 +1,7 @@
 <script>
-	import '/workspace/NFL-Survivor-Select/frontend/app.css';
+	import '$lib/global.css';
 	import { onMount } from 'svelte';
-	import JsonViewer from '../lib/components/JsonViewer.svelte';
+	import JsonViewer from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/JsonViewer.svelte';
 	import Navbar from '/workspace/NFL-Survivor-Select/frontend/src/lib/components/Navbar.svelte';
 	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/MetamaskController';
 	import navbarController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/NavbarController';
@@ -29,6 +29,7 @@
 
 <div class="app">
 	<Navbar {address} {balance} />
+	<JsonViewer />
 	<div class="bg-black">
 		<header />
 		<main>

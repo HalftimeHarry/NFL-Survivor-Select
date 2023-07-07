@@ -30,9 +30,9 @@
 	<div class="container flex flex-wrap items-center justify-between mx-auto">
 		<a href="/" class="flex items-center">
 			<img
-				src="https://albatrossleague.com/wp-content/uploads/2022/10/albatros_horizontal-320x72.png"
+				src="https://cdn.ssref.net/req/202306191/tlogo/pfr/NFL.png"
 				class="h-6 mr-3 sm:h-9"
-				alt="Dulligan Logo"
+				alt="NFL Logo"
 			/>
 			<span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
 				{balance}
