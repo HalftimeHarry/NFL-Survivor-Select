@@ -9,6 +9,7 @@ const baseState = {
 
 class EntryController {
   #entryStore = writable({ ...baseState });
+  ethersProvider: any;
 
   constructor() {
     this.ethersProvider = new EthersProvider();

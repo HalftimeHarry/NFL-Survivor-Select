@@ -1,7 +1,9 @@
 import { ethers } from "ethers";
 import poolMasterABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json";
 import poolRewardManagerABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolRewardManager.sol/PoolRewardManager.json";
+import entryABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Entry.sol/Entry.json";
 import {
+  EntryAddress,
   PoolMasterAddress,
   PoolRewardManagerAddress
 } from "./contractAddresses";
@@ -120,6 +122,33 @@ class EthersProvider {
     };
   }
   
+  getEntryContract() {
+    const contract = this.getContract({
+      abi: entryABI.abi,
+      address: EntryAddress,
+    });
+
+    return {
+      ownerOf: async (tokenId) => {
+        return await contract.ownerOf(tokenId);
+      },
+      totalSupply: async () => {
+        return await contract.totalSupply();
+      },
+      tokenURI: async (tokenId) => {
+        return await contract.tokenURI(tokenId);
+      },
+      pickTeam: async (entryId, weekId, teamId) => {
+        try {
+          const result = await contract.pickTeam(entryId, weekId, teamId);
+          return result;
+        } catch (error) {
+          console.error('Error picking team:', error);
+        }
+      },
+    };
+  }
+
   getPoolRewardManagerContract() {
     const contract = this.getContract({
       abi: poolRewardManagerABI.abi,
