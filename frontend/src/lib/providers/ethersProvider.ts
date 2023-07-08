@@ -70,10 +70,56 @@ class EthersProvider {
     });
 
     return {
-      // existing methods
+      list: async (
+        weekId: number,
+        name: string,
+        cost: number,
+        maxSpots: number,
+        date: string,
+        time: string,
+        entryDeadline: string,
+        pickDeadline: string
+      ) => {
+        return await contract.methods
+          .list(
+            weekId,
+            name,
+            cost,
+            maxSpots,
+            date,
+            time,
+            entryDeadline,
+            pickDeadline
+          )
+          .send({ from: this.account });
+      },
+      enter: async (id: number) => {
+        return await contract.methods.enter(id).send({ from: this.account });
+      },
+      getPool: async (id: number) => {
+        return await contract.methods.getPool(id).call({ from: this.account });
+      },
+      getWeek: async (weekId: number) => {
+        return await contract.methods.getWeek(weekId).call({ from: this.account });
+      },
+      getEntriesCount: async (id: number) => {
+        return await contract.methods.getEntriesCount(id).call({ from: this.account });
+      },
+      canSelectTeam: async (id: number) => {
+        return await contract.methods.canSelectTeam(id).call({ from: this.account });
+      },
+      setByeWeek: async (teamId: number, weekId: number) => {
+        return await contract.methods.setByeWeek(teamId, weekId).send({ from: this.account });
+      },
+      getPickDeadline: async (id: number) => {
+        return await contract.methods.getPickDeadline(id).call({ from: this.account });
+      },
+      withdraw: async () => {
+        return await contract.methods.withdraw().send({ from: this.account });
+      },
     };
   }
-
+  
   getPoolRewardManagerContract() {
     const contract = this.getContract({
       abi: poolRewardManagerABI.abi,
