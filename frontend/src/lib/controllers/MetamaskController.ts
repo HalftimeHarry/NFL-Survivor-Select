@@ -23,6 +23,7 @@ const baseState = {
 
 class MetamaskController{
     #appStore = writable({...baseState})
+    store: any
 
     constructor() {
         this.store = {
@@ -30,9 +31,9 @@ class MetamaskController{
         }
     }
 
-    networkChanged(chainId) {
-        let isConneted = chainId == config.HARDHAT;
-        let isWrongNetwork=!(chainId == config.HARDHAT)
+    networkChanged(chainId: number) {
+        const isConneted = chainId == config.HARDHAT;
+        const isWrongNetwork=!(chainId == config.HARDHAT)
         this.#appStore.update(s=>({...s,isConneted, isWrongNetwork}))
     }
 
@@ -55,14 +56,14 @@ class MetamaskController{
                 return s;
             })
 
-            ethereum.on('accountsChanged', accounts => {
+            ethereum.on('accountsChanged', (accounts: string[]) => {
                 this.#appStore.update(s => {
                     s.activeAccount = accounts[0];
                     return s;
                 });
             });
         } catch (error) {
-            let message = error?.message||messageType.ERROR
+            const message = error?.message||messageType.ERROR
             this.#appStore.set({...baseState, message,isLocked:true})
         }
     }

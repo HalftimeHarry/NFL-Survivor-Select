@@ -1,5 +1,5 @@
 <script>
-	import MetamaskController from '/workspace/Albatross-1/frontend/src/lib/controllers/MetamaskController.js';
+	import MetamaskController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/MetamaskController';
 
 	export let address = null;
 	export let balance;
@@ -30,9 +30,9 @@
 	<div class="container flex flex-wrap items-center justify-between mx-auto">
 		<a href="/" class="flex items-center">
 			<img
-				src="https://albatrossleague.com/wp-content/uploads/2022/10/albatros_horizontal-320x72.png"
+				src="https://cdn.ssref.net/req/202306191/tlogo/pfr/NFL.png"
 				class="h-6 mr-3 sm:h-9"
-				alt="Dulligan Logo"
+				alt="NFL Logo"
 			/>
 			<span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
 				{balance}
@@ -79,7 +79,7 @@
 					<a
 						href="/"
 						class="block py-2 pl-3 pr-4 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white"
-						aria-current="page">Franchise</a
+						aria-current="page">Pick</a
 					>
 				</li>
 				<li>

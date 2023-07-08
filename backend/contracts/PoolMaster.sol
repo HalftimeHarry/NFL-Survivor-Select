@@ -44,6 +44,8 @@ contract PoolMaster is ERC721 {
         bool hasPassed; // Add this line to your struct
     }
 
+    // Mapping to store bye weeks for each team
+    mapping(uint256 => uint256) private byeWeeks;
     mapping(uint256 => Week) public poolWeeks;
     mapping(uint256 => Pool) public pools;
     mapping(uint256 => mapping(address => bool)) public hasEntered;
@@ -156,6 +158,38 @@ contract PoolMaster is ERC721 {
         emit EnteredPool(_id, msg.sender, pools[_id].players);
     }
 
+    function generateTokenURI(
+        Pool memory _pool
+    ) private pure returns (string memory) {
+        // Generate the metadata JSON string
+        string memory metadata = string(
+            abi.encodePacked(
+                '{"name":"',
+                _pool.name,
+                '",',
+                '"description":"NFT used for making a pick",',
+                '"attributes":[{"trait_type":"Week","value":"',
+                Strings.toString(_pool.weekId),
+                '"}]}'
+            )
+        );
+
+        // Return the full token URI
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    base64Encode(bytes(metadata))
+                )
+            );
+    }
+
+    function base64Encode(
+        bytes memory _data
+    ) private pure returns (string memory) {
+        return Base64.encode(_data);
+    }
+
     function getPool(uint256 _id) public view returns (Pool memory) {
         return pools[_id];
     }
@@ -195,6 +229,19 @@ contract PoolMaster is ERC721 {
         } else {
             return false;
         }
+    }
+
+    // Set the bye week for a team
+    function setByeWeek(uint256 teamId, uint256 weekId) public {
+        byeWeeks[teamId] = weekId;
+    }
+
+    // Check if a team is on a bye for a given week
+    function isByeWeek(
+        uint256 teamId,
+        uint256 weekId
+    ) internal view returns (bool) {
+        return byeWeeks[teamId] == weekId;
     }
 
     function getPickDeadline(uint256 _poolId) public view returns (uint256) {

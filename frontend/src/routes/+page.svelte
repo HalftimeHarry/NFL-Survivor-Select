@@ -1,13 +1,55 @@
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
+<script>
+	import { crossfade, fade, fly } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	import EthersProvider from '/workspace/NFL-Survivor-Select/frontend/src/lib/providers/ethersProvider';
+	import entryController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/EntryController';
+	import poolMasterController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/PoolMasterController';
+	import poolRewardManagerController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/PoolRewardManagerController';
+	import { onMount } from 'svelte';
 
-<div class="container h-full mx-auto flex justify-center items-center">
-	<div class="space-y-5">
-		<h1 class="h1">Let's get cracking bones!</h1>
-		<p>Start by exploring:</p>
-		<ul>
-			<li><code class="code">/src/routes/+layout.svelte</code> - barebones layout, the CSS import order is critical!</li>
-			<li><code class="code">/src/app.postcss</code> - minimal css to make the page full screen, may not be relevant for your project</li>
-			<li><code class="code">/src/routes/+page.svelte</code> - this page, you can replace the contents</li>
-		</ul>
+	onMount(async () => {
+		await entryController.init(1);
+		await poolMasterController.init(); // These are hardcoded for testing
+		await poolMasterController.init();
+		await poolRewardManagerController.init();
+	});
+
+	const entryStore = entryController.entryStore;
+	const poolMasterStore = poolMasterController.poolMasterStore;
+	const poolRewardsManagerStore = poolRewardManagerController.poolRewardManagerStore;
+
+	$: ({ entryOwner, totalSupply, nfts } = $entryStore);
+
+	$: ({ deployer, participant } = $poolMasterStore);
+
+	$: ({ poolMaster, totalEntries, totalActiveEntries, rewardPool } = $poolRewardsManagerStore);
+
+	const ethersProvider = new EthersProvider();
+</script>
+
+<section class="container mx-auto ml-auto text-white bg-black">
+	<div>
+		Entry Owner: {entryOwner}
 	</div>
-</div>
+	<div>
+		Total Supply: {totalSupply}
+	</div>
+	<div>
+		Deployer: {deployer}
+	</div>
+	<div>
+		Participant: {participant}
+	</div>
+	<div>
+		Pool Master: {poolMaster}
+	</div>
+	<div>
+		Total Entries: {totalEntries}
+	</div>
+	<div>
+		Total Active Entries: {totalActiveEntries}
+	</div>
+	<div>
+		Reward Pool: {rewardPool}
+	</div>
+</section>
