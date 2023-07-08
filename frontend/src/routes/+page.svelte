@@ -4,19 +4,19 @@
 	import EthersProvider from '/workspace/NFL-Survivor-Select/frontend/src/lib/providers/ethersProvider';
 	import entryController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/EntryController';
 	import poolMasterController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/PoolMasterController';
-	import poolRewardsManagerController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/PoolRewardsManagerController';
+	import poolRewardManagerController from '/workspace/NFL-Survivor-Select/frontend/src/lib/controllers/PoolRewardManagerController';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
 		await entryController.init(1);
-		await poolMasterController.init(1); // These are hardcoded for testing
-		await poolMasterController.init(1);
-		await poolRewardsManagerController.init();
+		await poolMasterController.init(); // These are hardcoded for testing
+		await poolMasterController.init();
+		await poolRewardManagerController.init();
 	});
 
 	const entryStore = entryController.entryStore;
 	const poolMasterStore = poolMasterController.poolMasterStore;
-	const poolRewardsManagerStore = poolRewardsManagerController.poolRewardsManagerStore;
+	const poolRewardsManagerStore = poolRewardManagerController.poolRewardManagerStore;
 
 	$: ({ entryOwner, totalSupply, nfts } = $entryStore);
 
