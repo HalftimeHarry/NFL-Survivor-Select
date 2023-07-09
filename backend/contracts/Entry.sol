@@ -29,6 +29,7 @@ contract Entry is ERC721URIStorage {
     // Mapping from Entry ID to an array of PickedTeams
     mapping(uint256 => PickedTeam[]) private _pickedTeams;
     mapping(uint256 => address) private entryOwners;
+    mapping(uint256 => bool) private _acceptingBids; // Added property
 
     constructor(address _poolMasterAddress) ERC721("Entry", "ENT") {
         poolMaster = IPoolMaster(_poolMasterAddress);
@@ -152,6 +153,21 @@ contract Entry is ERC721URIStorage {
         return (weekIds, teamIds);
     }
 
+    function setAcceptingBids(uint256 entryId, bool acceptingBids) public {
+        // Check if the sender is the owner of the entry
+        require(
+            msg.sender == ownerOf(entryId),
+            "Only the entry owner can set accepting bids"
+        );
+
+        // Set the acceptingBids value for the entry
+        _acceptingBids[entryId] = acceptingBids;
+    }
+
+    function isAcceptingBids(uint256 entryId) public view returns (bool) {
+        return _acceptingBids[entryId];
+    }
+
     function handleRandomPickOmitByeTeams(uint256 weekId) public {
         // Check if the sender is the pool master contract
         require(
@@ -173,21 +189,28 @@ contract Entry is ERC721URIStorage {
     }
 
     // Retrieves the picks made by participants for a given week
-    function getPicksForWeek(uint256 weekId) internal view returns (uint256[] memory) {
+    function getPicksForWeek(
+        uint256 weekId
+    ) internal view returns (uint256[] memory) {
         // Implement the logic to retrieve the picks for the specified week
         // and return an array of entry IDs representing the picks
         // ...
     }
 
     // Checks if a participant has made a pick for a given week
-    function hasPickedTeam(uint256 entryId, uint256 weekId) internal view returns (bool) {
+    function hasPickedTeam(
+        uint256 entryId,
+        uint256 weekId
+    ) internal view returns (bool) {
         // Implement the logic to check if the participant with the specified
         // entry ID has made a pick for the specified week
         // Return true if the participant has made a pick, false otherwise
         // ...
     }
 
-    function getParticipantsWithoutPickedTeam(uint256 weekId) internal view returns (uint256[] memory) {
+    function getParticipantsWithoutPickedTeam(
+        uint256 weekId
+    ) internal view returns (uint256[] memory) {
         uint256[] memory participants;
         uint256[] memory picks = getPicksForWeek(weekId);
 
@@ -205,7 +228,9 @@ contract Entry is ERC721URIStorage {
     }
 
     // Retrieves the available teams that have not been picked for a given week
-    function getAvailableTeams(uint256 weekId) internal view returns (uint256[] memory) {
+    function getAvailableTeams(
+        uint256 weekId
+    ) internal view returns (uint256[] memory) {
         // Retrieve the total number of teams
         uint256 totalTeams = getTotalTeams();
 
@@ -224,14 +249,14 @@ contract Entry is ERC721URIStorage {
                 availableTeams[index] = teamId;
                 index++;
             }
-    }
+        }
 
-    // Resize the availableTeams array to remove any unused elements
-    assembly {
-        mstore(availableTeams, index)
-    }
+        // Resize the availableTeams array to remove any unused elements
+        assembly {
+            mstore(availableTeams, index)
+        }
 
-    return availableTeams;
+        return availableTeams;
     }
 
     // Retrieves the total number of teams
@@ -242,13 +267,15 @@ contract Entry is ERC721URIStorage {
     }
 
     // Checks if a team has been picked for a given week
-    function isTeamPickedForWeek(uint256 teamId, uint256 weekId) internal view returns (bool) {
+    function isTeamPickedForWeek(
+        uint256 teamId,
+        uint256 weekId
+    ) internal view returns (bool) {
         // Implement the logic to check if the specified team has been picked
         // for the specified week
         // Return true if the team has been picked, false otherwise
         // ...
     }
-
 
     function getRandomTeamId(uint256 weekId) internal view returns (uint256) {
         // Get the list of available teams for the given week

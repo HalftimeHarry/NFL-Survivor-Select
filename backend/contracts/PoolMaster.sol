@@ -4,6 +4,18 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./Entry.sol"; // The Entry contract
+import "./Base64.sol";
+
+contract PoolToken is ERC721 {
+    constructor(
+        string memory _name,
+        string memory _symbol
+    ) ERC721(_name, _symbol) {}
+
+    function mint(address _to, uint256 _tokenId) external {
+        _safeMint(_to, _tokenId);
+    }
+}
 
 contract PoolMaster is ERC721 {
     address public owner;
@@ -24,10 +36,9 @@ contract PoolMaster is ERC721 {
 
     struct Pool {
         uint256 id;
-        uint256 weekId; // Add this
+        uint256 weekId;
         string name;
         uint256 cost;
-        uint256 players;
         uint256 spots;
         string date;
         string time;
@@ -41,7 +52,7 @@ contract PoolMaster is ERC721 {
         uint256 entryDeadline;
         uint256 pickDeadline;
         uint256 selectionDeadline;
-        bool hasPassed; // Add this line to your struct
+        bool hasPassed;
     }
 
     // Mapping to store bye weeks for each team
@@ -51,6 +62,8 @@ contract PoolMaster is ERC721 {
     mapping(uint256 => mapping(address => bool)) public hasEntered;
     mapping(uint256 => uint256) public entriesCount;
     mapping(uint256 => mapping(address => uint256)) selectedTeams;
+    mapping(uint256 => address) public poolContracts;
+    mapping(uint256 => PoolToken) public poolTokens;
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -122,18 +135,18 @@ contract PoolMaster is ERC721 {
         require(poolWeeks[_weekId].id == _weekId, "Week does not exist");
 
         totalPools++;
-        pools[totalPools] = Pool(
+        Pool memory newPool = Pool(
             totalPools,
             _weekId,
             _name,
             _cost,
-            _maxSpots,
             _maxSpots,
             _date,
             _time,
             _entryDeadline,
             _pickDeadline
         );
+        pools[totalPools] = newPool;
 
         // Emit ListedPool event when a new pool is listed
         emit ListedPool(totalPools, _weekId, _name, _cost, _maxSpots);
@@ -144,18 +157,19 @@ contract PoolMaster is ERC721 {
         require(_id <= totalPools);
         require(msg.value >= pools[_id].cost);
         require(!hasEntered[_id][msg.sender]);
-        require(pools[_id].players > 0, "Pool is already full");
+        require(pools[_id].spots > 0, "Pool is already full");
 
-        pools[_id].players -= 1;
+        pools[_id].spots -= 1;
         hasEntered[_id][msg.sender] = true;
         entriesCount[_id] += 1; // Increment the entry count
 
-        totalSupply++;
 
-        _safeMint(msg.sender, totalSupply);
+
+        // Transfer ownership of the NFT to the Pool contract
+        _transfer(msg.sender, poolContracts[_id], totalSupply);
 
         // Emit EnteredPool event when a player enters a pool
-        emit EnteredPool(_id, msg.sender, pools[_id].players);
+        emit EnteredPool(_id, msg.sender, pools[_id].spots);
     }
 
     function generateTokenURI(
@@ -220,7 +234,7 @@ contract PoolMaster is ERC721 {
         require(_poolId != 0, "Invalid pool ID");
         require(_poolId <= totalPools, "Invalid pool ID");
 
-        Pool storage pool = pools[_poolId];
+        Pool memory pool = pools[_poolId];
         uint256 currentTime = block.timestamp;
 
         // Check if the current time is before the team selection deadline
@@ -247,6 +261,20 @@ contract PoolMaster is ERC721 {
     function getPickDeadline(uint256 _poolId) public view returns (uint256) {
         require(_poolId > 0 && _poolId <= totalPools, "Invalid pool ID");
         return pools[_poolId].pickDeadline;
+    }
+
+    function withdrawLoserNFTs(uint256 _poolId) public {
+        require(_poolId != 0);
+        require(_poolId <= totalPools);
+
+        // Ensure that the Pool contract exists for the given pool
+        require(
+            poolContracts[_poolId] != address(0),
+            "Pool contract does not exist"
+        );
+
+        // Delegate the call to the Pool contract
+       // Pool(poolContracts[_poolId]).withdrawLoserNFTs();
     }
 
     function withdraw() public onlyOwner {
