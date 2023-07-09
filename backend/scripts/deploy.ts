@@ -15,12 +15,24 @@ async function main() {
   const [deployer, participant] = await ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
+  // Deploy Base64
+  const Base64 = await ethers.getContractFactory('Base64');
+  const base64 = await Base64.deploy(); // pass the value of _cost here
+  await base64.deployed();
+
   // Deploy Entry
   const Entry = await ethers.getContractFactory('Entry');
   const entry = await Entry.deploy(participant.address); // pass the value of _cost here
   await entry.deployed();
 
   console.log(`Deployed Entry Contract at: ${entry.address}`);
+
+  // Deploy Pool
+  const Pool = await ethers.getContractFactory('Pool');
+  const pool = await Pool.deploy(deployer.address); // pass the value of _cost here
+  await pool.deployed();
+
+  console.log(`Deployed Pool Contract at: ${pool.address}`);
 
   // Deploy PoolMaster
   const PoolMaster = await ethers.getContractFactory('PoolMaster');
@@ -34,8 +46,12 @@ async function main() {
   await poolRewardManager.deployed();
   console.log(`Deployed PoolRewardManager Contract at: ${poolRewardManager.address}`);
 
-
-} // This is the corrected location of the closing curly brace
+  // Deploy PoolToken
+  const PoolToken = await ethers.getContractFactory('PoolToken');
+  const poolToken = await PoolToken.deploy("PoolToken", "PT");
+  await poolToken.deployed();
+  console.log(`Deployed PoolToken Contract at: ${poolToken.address}`);
+}
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.

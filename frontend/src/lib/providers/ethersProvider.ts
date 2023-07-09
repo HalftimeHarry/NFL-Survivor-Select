@@ -2,22 +2,33 @@ import { ethers } from "ethers";
 import poolMasterABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolMaster.sol/PoolMaster.json";
 import poolRewardManagerABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolRewardManager.sol/PoolRewardManager.json";
 import entryABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Entry.sol/Entry.json";
+import poolTokenABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/PoolToken.sol/PoolToken.json";
+import poolABI from "/workspace/NFL-Survivor-Select/backend/artifacts/contracts/Pool.sol/Pool.json";
 import {
   EntryAddress,
   PoolMasterAddress,
-  PoolRewardManagerAddress
+  PoolRewardManagerAddress,
+  PoolAddress,
+  PoolTokenAddress,
 } from "./contractAddresses";
 
 class EthersProvider {
+  deployerAddress: any;
+  getParticipantAddress() {
+      throw new Error("Method not implemented.");
+  }
   provider: ethers.providers.Web3Provider;
   signer: ethers.providers.JsonRpcSigner;
   account: string;
 
-  constructor(account: string = '') {
+  constructor(account: string = "") {
     this.account = account;
 
-    if (typeof window !== 'undefined') {
-      this.provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    if (typeof window !== "undefined") {
+      this.provider = new ethers.providers.Web3Provider(
+        window.ethereum,
+        "any"
+      );
       this.signer = this.provider.getSigner();
     } else {
       console.error("Window object is not available");
@@ -34,7 +45,7 @@ class EthersProvider {
   }
 
   async getConnectedAccount() {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       console.error("Window object is not available");
       return;
     }
@@ -42,10 +53,12 @@ class EthersProvider {
     if (window.ethereum) {
       try {
         // Request account access
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        await window.ethereum.request({ method: "eth_requestAccounts" });
 
         // Get the user's account address
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
         return accounts[0]; // Return the first account in the array
       } catch (error) {
         console.error("User denied account access");
@@ -60,7 +73,7 @@ class EthersProvider {
     return await this.provider.listAccounts();
   }
 
-  getContract({ abi, address }: { abi: any, address: string }) {
+  getContract({ abi, address }: { abi: any; address: string }) {
     const contract = new ethers.Contract(address, abi, this.signer);
     return contract;
   }
@@ -82,46 +95,44 @@ class EthersProvider {
         entryDeadline: string,
         pickDeadline: string
       ) => {
-        return await contract.methods
-          .list(
-            weekId,
-            name,
-            cost,
-            maxSpots,
-            date,
-            time,
-            entryDeadline,
-            pickDeadline
-          )
-          .send({ from: this.account });
+        return await contract.list(
+          weekId,
+          name,
+          cost,
+          maxSpots,
+          date,
+          time,
+          entryDeadline,
+          pickDeadline
+        );
       },
       enter: async (id: number) => {
-        return await contract.methods.enter(id).send({ from: this.account });
+        return await contract.enter(id);
       },
       getPool: async (id: number) => {
-        return await contract.methods.getPool(id).call({ from: this.account });
+        return await contract.getPool(id);
       },
       getWeek: async (weekId: number) => {
-        return await contract.methods.getWeek(weekId).call({ from: this.account });
+        return await contract.getWeek(weekId);
       },
       getEntriesCount: async (id: number) => {
-        return await contract.methods.getEntriesCount(id).call({ from: this.account });
+        return await contract.getEntriesCount(id);
       },
       canSelectTeam: async (id: number) => {
-        return await contract.methods.canSelectTeam(id).call({ from: this.account });
+        return await contract.canSelectTeam(id);
       },
       setByeWeek: async (teamId: number, weekId: number) => {
-        return await contract.methods.setByeWeek(teamId, weekId).send({ from: this.account });
+        return await contract.setByeWeek(teamId, weekId);
       },
       getPickDeadline: async (id: number) => {
-        return await contract.methods.getPickDeadline(id).call({ from: this.account });
+        return await contract.getPickDeadline(id);
       },
       withdraw: async () => {
-        return await contract.methods.withdraw().send({ from: this.account });
+        return await contract.withdraw();
       },
     };
   }
-  
+
   getEntryContract() {
     const contract = this.getContract({
       abi: entryABI.abi,
@@ -129,21 +140,21 @@ class EthersProvider {
     });
 
     return {
-      ownerOf: async (tokenId) => {
+      ownerOf: async (tokenId: number) => {
         return await contract.ownerOf(tokenId);
       },
       totalSupply: async () => {
         return await contract.totalSupply();
       },
-      tokenURI: async (tokenId) => {
+      tokenURI: async (tokenId: number) => {
         return await contract.tokenURI(tokenId);
       },
-      pickTeam: async (entryId, weekId, teamId) => {
+      pickTeam: async (entryId: number, weekId: number, teamId: number) => {
         try {
           const result = await contract.pickTeam(entryId, weekId, teamId);
           return result;
         } catch (error) {
-          console.error('Error picking team:', error);
+          console.error("Error picking team:", error);
         }
       },
     };
@@ -179,6 +190,38 @@ class EthersProvider {
       },
       rewardPool: async () => {
         return await contract.rewardPool();
+      },
+    };
+  }
+
+  getPoolContract() {
+    const contract = this.getContract({
+      abi: poolABI.abi,
+      address: PoolAddress,
+    });
+
+    return {
+      enter: async (tokenId: number) => {
+        return await contract.enter(tokenId);
+      },
+      closePool: async () => {
+        return await contract.closePool();
+      },
+      withdrawLoserNFTs: async () => {
+        return await contract.withdrawLoserNFTs();
+      },
+    };
+  }
+
+  getPoolTokenContract() {
+    const contract = this.getContract({
+      abi: poolTokenABI.abi,
+      address: PoolTokenAddress,
+    });
+
+    return {
+      mint: async (to: string, tokenId: number) => {
+        return await contract.mint(to, tokenId);
       },
     };
   }

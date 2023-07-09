@@ -5,17 +5,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./Entry.sol"; // The Entry contract
 import "./Base64.sol";
-
-contract PoolToken is ERC721 {
-    constructor(
-        string memory _name,
-        string memory _symbol
-    ) ERC721(_name, _symbol) {}
-
-    function mint(address _to, uint256 _tokenId) external {
-        _safeMint(_to, _tokenId);
-    }
-}
+import "./PoolToken.sol";
 
 contract PoolMaster is ERC721 {
     address public owner;
@@ -163,8 +153,6 @@ contract PoolMaster is ERC721 {
         hasEntered[_id][msg.sender] = true;
         entriesCount[_id] += 1; // Increment the entry count
 
-
-
         // Transfer ownership of the NFT to the Pool contract
         _transfer(msg.sender, poolContracts[_id], totalSupply);
 
@@ -263,7 +251,7 @@ contract PoolMaster is ERC721 {
         return pools[_poolId].pickDeadline;
     }
 
-    function withdrawLoserNFTs(uint256 _poolId) public {
+    function withdrawLoserNFTs(uint256 _poolId) public view {
         require(_poolId != 0);
         require(_poolId <= totalPools);
 
@@ -274,7 +262,7 @@ contract PoolMaster is ERC721 {
         );
 
         // Delegate the call to the Pool contract
-       // Pool(poolContracts[_poolId]).withdrawLoserNFTs();
+        // Pool(poolContracts[_poolId]).withdrawLoserNFTs();
     }
 
     function withdraw() public onlyOwner {

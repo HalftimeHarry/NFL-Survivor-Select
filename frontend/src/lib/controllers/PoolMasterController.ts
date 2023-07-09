@@ -8,6 +8,7 @@ const baseState = {
 
 class PoolMasterController {
   #poolMasterStore = writable({ ...baseState });
+  ethersProvider: EthersProvider;
 
   constructor() {
     this.ethersProvider = new EthersProvider();
@@ -25,7 +26,7 @@ class PoolMasterController {
   }
 
   async #updateDeployerAddress() {
-    const deployer = await this.ethersProvider.deployerAddress;
+    const deployer = await this.ethersProvider.getPoolMasterContract().deployerAddress;
     this.#poolMasterStore.update((s) => ({ ...s, deployer }));
   }
 

@@ -44,12 +44,7 @@ class EntryController {
 
   async pickTeam(entryId, weekId, teamId) {
     try {
-      const transactionReceipt = await this.ethersProvider.getEntryContract().pickTeam(entryId, weekId, teamId);
-      if (transactionReceipt) {
-        await transactionReceipt.wait();
-      } else {
-        console.error("Transaction is undefined.");
-      }
+      await this.ethersProvider.getEntryContract().pickTeam(entryId, weekId, teamId);
     } catch (error) {
       console.error("Error in pickTeam:", error);
     }

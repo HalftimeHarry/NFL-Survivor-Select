@@ -8,6 +8,7 @@ const baseState = {
 
 class SignersController { 
     #signersStore = writable({...baseState});
+    ethersProvider: EthersProvider;
   
     constructor() {
         this.ethersProvider = new EthersProvider();
