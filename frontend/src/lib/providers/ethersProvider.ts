@@ -15,7 +15,9 @@ import {
 class EthersProvider {
   deployerAddress: any;
   getParticipantAddress() {
-      throw new Error("Method not implemented.");
+    const participantAddress = "example participant address"; // Replace this with the actual logic to retrieve the participant address
+    console.log("Participant Address:", participantAddress); // Log the participant address
+    return participantAddress; // Return the participant address
   }
   provider: ethers.providers.Web3Provider;
   signer: ethers.providers.JsonRpcSigner;
